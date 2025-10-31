@@ -23,8 +23,11 @@ async function loadTrainedAnswers() {
   }
 }
 
-// Call it on page load
+// Initial load
 loadTrainedAnswers();
+
+// Auto-refresh trained answers every 30 seconds
+setInterval(loadTrainedAnswers, 30000);
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
@@ -103,5 +106,29 @@ input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
+  }
+});
+
+// === Live suggestion while typing ===
+input.addEventListener("input", () => {
+  const currentText = input.value.trim().toLowerCase();
+  if (!currentText) return;
+
+  // Find exact or closest match in trained answers
+  const matchKey = Object.keys(trainedAnswers).find(q => q.startsWith(currentText));
+  if (matchKey) {
+    const previewText = trainedAnswers[matchKey];
+    // Optionally show a temporary preview in chat-box or below input
+    let previewElem = document.getElementById("live-preview");
+    if (!previewElem) {
+      previewElem = document.createElement("div");
+      previewElem.id = "live-preview";
+      previewElem.className = "bot-msg live-preview";
+      input.parentNode.appendChild(previewElem);
+    }
+    previewElem.innerHTML = `🤖 Preview: ${previewText.replace(/\n/g, "<br>")}`;
+  } else {
+    const previewElem = document.getElementById("live-preview");
+    if (previewElem) previewElem.remove();
   }
 });
