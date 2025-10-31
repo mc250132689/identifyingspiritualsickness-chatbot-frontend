@@ -40,7 +40,7 @@
     const searchInput = document.getElementById("search-input");
     const langFilter = document.getElementById("lang-filter");
 
-    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/training-data"; // Change if hosted
+    const API_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/get-training-data";
     let trainingData = [];
 
     async function loadTrainingData() {
@@ -48,7 +48,6 @@
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        // Sort newest first
         trainingData = data.training_data.reverse();
         displayData(trainingData);
       } catch (err) {
@@ -88,19 +87,15 @@
 
     function filterAndSearch() {
       let filtered = trainingData;
-
       const query = searchInput.value.toLowerCase();
       const lang = langFilter.value;
 
-      if (lang) {
-        filtered = filtered.filter(item => item.lang === lang);
-      }
-      if (query) {
-        filtered = filtered.filter(item =>
-          item.question.toLowerCase().includes(query) ||
-          item.answer.toLowerCase().includes(query)
-        );
-      }
+      if (lang) filtered = filtered.filter(item => item.lang === lang);
+      if (query) filtered = filtered.filter(item =>
+        item.question.toLowerCase().includes(query) ||
+        item.answer.toLowerCase().includes(query)
+      );
+
       displayData(filtered);
     }
 
@@ -108,7 +103,6 @@
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
-    // Load automatically on page load
     loadTrainingData();
   </script>
 </body>
