@@ -3,6 +3,7 @@ const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
+// Format answer for chat display
 function formatAnswer(text) {
   return text
     .replace(/\r\n|\r/g, "\n")
@@ -12,7 +13,7 @@ function formatAnswer(text) {
     .replace(/\|(.+?)\|/gs, (match) => {
       const rows = match.trim().split("\n").filter(r => r.trim());
       const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c);
+        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
         return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
       }).join("");
       return `<table class="chat-table">${tableRows}</table>`;
@@ -43,11 +44,12 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     responseText.innerHTML = data.message || "Training data submitted successfully!";
 
+    // Auto-clear input fields
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
 
+    // Show preview
     const formattedAnswer = formatAnswer(answer);
-
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
     userBubble.textContent = question;
@@ -64,7 +66,7 @@ form.addEventListener("submit", async (e) => {
     preview.appendChild(pair);
     preview.scrollTop = preview.scrollHeight;
 
-    // Update chat in-memory answers
+    // Update in-memory chat trained answers immediately
     if (window.chatAddTrainedAnswer) {
       window.chatAddTrainedAnswer(question, answer);
     }
