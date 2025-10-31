@@ -120,7 +120,7 @@
     });
 
     // Import from Excel
-    importFile.addEventListener("change", async (e) => {
+   importFile.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -137,11 +137,20 @@
     for (let item of json) {
       if (!item.question || !item.answer) continue;
 
-      const existingIndex = trainingData.findIndex(td => td.question === item.question);
+      // Normalize strings for comparison (trim + lowercase)
+      const newQ = item.question.trim().toLowerCase();
+      const newA = item.answer.trim();
+
+      const existingIndex = trainingData.findIndex(td =>
+        td.question.trim().toLowerCase() === newQ
+      );
+
       if (existingIndex >= 0) {
-        // Update existing answer and language
-        trainingData[existingIndex].answer = item.answer;
-        trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
+        // If question exists, update answer only if different
+        if (trainingData[existingIndex].answer.trim() !== newA) {
+          trainingData[existingIndex].answer = item.answer;
+          trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
+        }
       } else {
         // Add new entry
         trainingData.unshift({
