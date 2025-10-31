@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
-  <!-- XLSX for Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- DOCX for Word -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.6.0/docx.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -35,10 +33,7 @@
       <option value="ar">Arabic (AR)</option>
     </select>
     <button id="refresh-btn">Refresh Data</button>
-    <button id="export-excel-btn">Export Excel</button>
     <button id="export-docx-btn">Export DOCX</button>
-    <button id="import-btn">Import Excel</button>
-    <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
   </div>
 
   <div id="training-container"></div>
@@ -48,13 +43,9 @@
     const refreshBtn = document.getElementById("refresh-btn");
     const searchInput = document.getElementById("search-input");
     const langFilter = document.getElementById("lang-filter");
-    const exportExcelBtn = document.getElementById("export-excel-btn");
     const exportDocxBtn = document.getElementById("export-docx-btn");
-    const importBtn = document.getElementById("import-btn");
-    const importFile = document.getElementById("import-file");
 
     const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
     let trainingData = [];
 
     // Load training data from backend
@@ -116,15 +107,6 @@
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
-    // Export to Excel
-    exportExcelBtn.addEventListener("click", () => {
-      if (!trainingData.length) return alert("No data to export!");
-      const ws = XLSX.utils.json_to_sheet(trainingData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
-      XLSX.writeFile(wb, "training_data.xlsx");
-    });
-
     // Export to DOCX
     exportDocxBtn.addEventListener("click", async () => {
       if (!trainingData.length) return alert("No data to export!");
@@ -149,65 +131,6 @@
 
       const blob = await Packer.toBlob(doc);
       saveAs(blob, "training_data.docx");
-    });
-
-    // Import Excel
-    importBtn.addEventListener("click", () => importFile.click());
-    importFile.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
-
-        if (!json.length) return alert("No data found in Excel!");
-
-        for (let item of json) {
-          if (!item.question || !item.answer) continue;
-
-          const newQ = item.question.trim().toLowerCase();
-          const newA = item.answer.trim();
-
-          const existingIndex = trainingData.findIndex(td =>
-            td.question.trim().toLowerCase() === newQ
-          );
-
-          if (existingIndex >= 0) {
-            if (trainingData[existingIndex].answer.trim() !== newA) {
-              trainingData[existingIndex].answer = item.answer;
-              trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
-            }
-          } else {
-            trainingData.unshift({
-              question: item.question,
-              answer: item.answer,
-              lang: item.lang || "en"
-            });
-          }
-
-          try {
-            await fetch(TRAIN_API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question: item.question,
-                answer: item.answer,
-                lang: item.lang || "en"
-              }),
-            });
-          } catch (err) {
-            console.error("Failed to upload:", item, err);
-          }
-        }
-
-        displayData(trainingData);
-        alert("Training data imported and merged successfully!");
-      };
-      reader.readAsArrayBuffer(file);
     });
 
     // Auto-refresh every 5 seconds
