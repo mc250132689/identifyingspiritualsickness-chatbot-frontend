@@ -1,6 +1,7 @@
 const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
+const preview = document.getElementById("train-preview");
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -36,10 +37,28 @@ form.addEventListener("submit", async (e) => {
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
 
+    // Show preview in chat-bubble style
+    const userBubble = document.createElement("div");
+    userBubble.className = "train-user-msg";
+    userBubble.textContent = question;
+
+    const botBubble = document.createElement("div");
+    botBubble.className = "train-bot-msg";
+    botBubble.innerHTML = answer.replace(/\n/g, "<br>");
+
+    const pair = document.createElement("div");
+    pair.className = "train-msg-pair";
+    pair.appendChild(userBubble);
+    pair.appendChild(botBubble);
+
+    preview.appendChild(pair);
+    preview.scrollTop = preview.scrollHeight;
+
     // Update in-memory chat trained answers immediately
     if (window.chatAddTrainedAnswer) {
       window.chatAddTrainedAnswer(question, answer);
     }
+
   } catch (err) {
     responseText.textContent = "Error submitting training data.";
   }
