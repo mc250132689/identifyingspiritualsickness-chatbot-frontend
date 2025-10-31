@@ -1,6 +1,6 @@
 // Backend API
-const API_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/chat";
-const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/view-training-data";
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 
