@@ -1,26 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Train Chatbot</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Latih Chatbot - Spiritual Sickness</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>🔧 Train the Chatbot</h1>
+<body class="bg-gradient-to-br from-emerald-50 to-emerald-100 min-h-screen flex flex-col">
 
-    <div class="train-form">
-      <input type="text" id="train-question" placeholder="Enter question">
-      <textarea id="train-answer" placeholder="Enter answer"></textarea>
-      <button onclick="trainChatbot()">Submit Training Data</button>
+  <header class="bg-emerald-600 text-white text-center py-4 shadow-lg">
+    <h1 class="text-2xl font-bold">💡 Latih Chatbot</h1>
+  </header>
+
+  <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
+    <form id="train-form" class="bg-white p-6 rounded-2xl shadow-md space-y-4">
+      <div>
+        <label class="block font-medium mb-2 text-emerald-700">Soalan</label>
+        <textarea id="train-question" class="w-full border border-emerald-400 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400" rows="2"></textarea>
+      </div>
+      <div>
+        <label class="block font-medium mb-2 text-emerald-700">Jawapan</label>
+        <textarea id="train-answer" class="w-full border border-emerald-400 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400" rows="4"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition">Simpan & Latih</button>
+    </form>
+
+    <div class="text-center mt-4">
+      <a href="chat.html" class="text-emerald-600 hover:underline">⬅️ Kembali ke Chatbot</a>
     </div>
+  </main>
 
-    <div id="train-status"></div>
+  <script>
+    document.getElementById("train-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const question = document.getElementById("train-question").value.trim();
+      const answer = document.getElementById("train-answer").value.trim();
+      if (!question || !answer) return alert("Sila isi kedua-dua medan!");
 
-    <a href="index.html" class="link">💬 Back to Chat</a>
-  </div>
-
-  <script src="train.js"></script>
+      const res = await fetch("https://your-backend-url.onrender.com/train", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ question, answer }),
+      });
+      if (res.ok) {
+        alert("Latihan berjaya disimpan!");
+        document.getElementById("train-form").reset();
+      } else alert("Ralat semasa menyimpan latihan.");
+    });
+  </script>
 </body>
 </html>
