@@ -7,25 +7,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>🕋 Identifying Spiritual Sickness Chatbot</h1>
+  <div class="chat-container">
+    <h2>🕋 Identifying Spiritual Sickness Chatbot</h2>
     <p>Based on Quran, Sunnah & Ruqyah</p>
-  </header>
 
-  <main class="chat-container">
     <div id="chat-box" class="chat-box"></div>
 
     <div class="input-container">
-      <input id="user-input" type="text" placeholder="Type your message..." />
+      <input type="text" id="user-input" placeholder="Type your message..." />
       <button id="send-btn">Send</button>
     </div>
-
-    <div id="loading" class="loading">🤲 Generating response...</div>
-  </main>
-
-  <footer>
-    <p>💫 Built for Identifying Islamic spiritual sickness. MC250132689 </p>
-  </footer>
+    <p id="status">🤲 Ready to assist...</p>
+  </div>
 
   <script src="chat.js"></script>
 </body>
