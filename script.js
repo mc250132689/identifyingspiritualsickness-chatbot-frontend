@@ -4,7 +4,9 @@ const sendBtn = document.getElementById("send-btn");
 const trainBtn = document.getElementById("train-btn");
 
 // change this to your Render backend URL
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";      // for chat
+const TRAIN_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";  // for train
+
 
 function appendMessage(sender, text) {
   const msg = document.createElement("div");
