@@ -2,34 +2,46 @@ const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat"
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 
-function appendMessage(sender, text) {
-  const msg = document.createElement("div");
-  msg.className = sender === "user" ? "user-msg" : "bot-msg";
+// In-memory dictionary for trained Q&A
+const trainedAnswers = {};
 
-  // Format: line breaks, bold, italic, headings
-  let formatted = text
-    .replace(/\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
+window.chatAddTrainedAnswer = (question, answer) => {
+  trainedAnswers[question.toLowerCase()] = answer;
+};
 
-  msg.innerHTML = formatted;
-  chatBox.appendChild(msg);
+function appendMessage(userText, botText) {
+  const container = document.createElement("div");
+  container.className = "message-pair";
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "user-msg";
+  userMsg.innerHTML = userText;
+  container.appendChild(userMsg);
+
+  const botMsg = document.createElement("div");
+  botMsg.className = "bot-msg";
+  botMsg.innerHTML = botText || "🤲 Generating response...";
+  container.appendChild(botMsg);
+
+  chatBox.appendChild(container);
   chatBox.scrollTop = chatBox.scrollHeight;
+
+  return botMsg;
 }
 
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
 
-  appendMessage("user", `🧍: ${userText}`);
   input.value = "";
 
-  const loadingMsg = document.createElement("div");
-  loadingMsg.className = "bot-msg";
-  loadingMsg.textContent = "🤲 Generating response...";
-  chatBox.appendChild(loadingMsg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  const trained = trainedAnswers[userText.toLowerCase()];
+  if (trained) {
+    appendMessage(`🧍: ${userText}`, `🤖: ${trained}`);
+    return;
+  }
+
+  const botMsgElem = appendMessage(`🧍: ${userText}`, null);
 
   try {
     const res = await fetch(API_URL, {
@@ -39,9 +51,14 @@ async function sendMessage() {
     });
 
     const data = await res.json();
-    loadingMsg.remove();
-    appendMessage("bot", `🤖: ${data.response}`);
+    let formatted = data.response
+      .replace(/\n/g, "<br>")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
+
+    botMsgElem.innerHTML = `🤖: ${formatted}`;
   } catch (err) {
-    loadingMsg.innerHTML = "🤖: Error connecting to backend.";
+    botMsgElem.innerHTML = "🤖: Error connecting to backend.";
   }
 }
