@@ -71,6 +71,7 @@ h1 {
   border-radius: 15px;
   max-width: 80%;
   word-wrap: break-word;
+  line-height: 1.5;
 }
 
 .bot-msg {
@@ -82,14 +83,61 @@ h1 {
   border-radius: 15px;
   max-width: 80%;
   word-wrap: break-word;
+  line-height: 1.6;
 }
 
+/* Paragraph spacing inside bot message */
+.bot-msg p {
+  margin: 10px 0;
+}
+
+/* Collapsible long content */
+.collapsible-container {
+  margin-top: 5px;
+}
+
+.collapsible-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.collapsible-btn:hover {
+  background: #0056b3;
+}
+
+/* Tables in chat messages */
+.chat-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.chat-table td {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+}
+
+/* Headings inside chat */
+.bot-msg h3 {
+  margin: 10px 0 5px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Train form and preview */
 #train-form input, #train-form textarea {
   width: 100%;
   padding: 10px;
   margin: 8px 0;
   border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 16px;
 }
 
 #train-form button {
@@ -110,29 +158,6 @@ h1 {
   font-weight: bold;
 }
 
-/* Train form question and answer */
-#train-form input {
-  width: 100%;
-  height: 50px;       /* Taller question box */
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
-
-#train-form textarea {
-  width: 100%;
-  height: 250px;      /* Bigger answer box */
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  resize: vertical;
-}
-
-/* Preview trained answers */
 #train-preview {
   max-height: 300px;
   overflow-y: auto;
@@ -158,6 +183,7 @@ h1 {
   border-radius: 15px;
   max-width: 80%;
   word-wrap: break-word;
+  line-height: 1.5;
 }
 
 .train-bot-msg {
@@ -168,20 +194,17 @@ h1 {
   border-radius: 15px;
   max-width: 80%;
   word-wrap: break-word;
+  line-height: 1.6;
 }
 
-.chat-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 10px 0;
-}
-
-.chat-table td {
-  border: 1px solid #ccc;
-  padding: 5px 10px;
-}
-
+/* Tables inside bot bubble */
 .bot-msg table {
   width: 100%;
 }
 
+/* Optional: small screens adjustments */
+@media (max-width: 600px) {
+  .user-msg, .bot-msg, .train-user-msg, .train-bot-msg {
+    max-width: 95%;
+  }
+}
