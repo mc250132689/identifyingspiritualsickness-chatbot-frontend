@@ -1,32 +1,30 @@
-const trainBtn = document.getElementById("train-btn");
-const statusMsg = document.getElementById("train-status");
+const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 
-trainBtn.addEventListener("click", async () => {
+const form = document.getElementById("train-form");
+const responseText = document.getElementById("train-response");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
   const question = document.getElementById("question").value.trim();
   const answer = document.getElementById("answer").value.trim();
-  const lang = document.getElementById("lang").value;
 
   if (!question || !answer) {
-    statusMsg.innerText = "⚠️ Please fill all fields!";
+    responseText.textContent = "Please fill both fields.";
     return;
   }
 
-  statusMsg.innerText = "⏳ Submitting...";
+  responseText.textContent = "Submitting...";
+  const res = await fetch(TRAIN_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, answer }),
+  });
 
-  try {
-    const res = await fetch("https://identifyingspiritualsickness-chatbot.onrender.com/train", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, answer, lang }),
-    });
+  const data = await res.json();
+  responseText.textContent = data.message;
 
-    const data = await res.json();
-    statusMsg.innerText = `✅ ${data.message}`;
-
-    // Auto clear inputs
-    document.getElementById("question").value = "";
-    document.getElementById("answer").value = "";
-  } catch (err) {
-    statusMsg.innerText = "⚠️ Error connecting to backend!";
-  }
+  // Clear input after submit
+  document.getElementById("question").value = "";
+  document.getElementById("answer").value = "";
 });
