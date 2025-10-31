@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
-  <!-- DOCX libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.7.0/docx.min.js"></script>
+  <!-- DOCX library for export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.6.0/docx.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
@@ -36,8 +34,8 @@
     </select>
     <button id="refresh-btn">Refresh Data</button>
     <button id="export-btn">Export DOCX</button>
-    <button id="import-btn">Import DOCX</button>
-    <input type="file" id="import-file" style="display:none" accept=".docx">
+    <button id="import-btn">Import Excel</button>
+    <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
   </div>
 
   <div id="training-container"></div>
@@ -55,7 +53,7 @@
     const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
     let trainingData = [];
 
-    // Load training data from backend
+    // Load training data from backend (connected to training_data.json)
     async function loadTrainingData() {
       try {
         const res = await fetch(API_URL);
@@ -117,15 +115,20 @@
     // Export to DOCX
     exportBtn.addEventListener("click", async () => {
       if (!trainingData.length) return alert("No data to export!");
-      const { Document, Packer, Paragraph, TextRun } = docx;
+      
+      const Document = docx.Document;
+      const Packer = docx.Packer;
+      const Paragraph = docx.Paragraph;
+      const TextRun = docx.TextRun;
+
       const doc = new Document();
 
       trainingData.forEach(item => {
         doc.addSection({
           children: [
             new Paragraph({ children: [new TextRun({ text: `Language: ${item.lang || "en"}`, bold: true })] }),
-            new Paragraph({ children: [new TextRun({ text: `Question:\n${item.question}`, break: 1 })] }),
-            new Paragraph({ children: [new TextRun({ text: `Answer:\n${item.answer}`, break: 1 })] }),
+            new Paragraph({ children: [new TextRun({ text: `Question:\n${item.question}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Answer:\n${item.answer}` })] }),
             new Paragraph({ text: "------------------------" })
           ]
         });
@@ -135,54 +138,64 @@
       saveAs(blob, "training_data.docx");
     });
 
-    // Import DOCX
-    importBtn.addEventListener("click", () => importFile.click());
+    // Import from Excel
     importFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
 
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      const text = result.value;
+        if (!json.length) return alert("No data found in Excel!");
 
-      const entries = text.split(/[-]{5,}/).map(t => t.trim()).filter(Boolean);
+        // Merge imported data with existing trainingData
+        for (let item of json) {
+          if (!item.question || !item.answer) continue;
 
-      for (let entry of entries) {
-        const langMatch = entry.match(/Language:\s*(.+)/i);
-        const questionMatch = entry.match(/Question:\s*\n([\s\S]*?)\nAnswer:/i);
-        const answerMatch = entry.match(/Answer:\s*\n([\s\S]*)/i);
+          const newQ = item.question.trim().toLowerCase();
+          const newA = item.answer.trim();
 
-        if (!questionMatch || !answerMatch) continue;
+          const existingIndex = trainingData.findIndex(td =>
+            td.question.trim().toLowerCase() === newQ
+          );
 
-        const newItem = {
-          lang: langMatch ? langMatch[1].trim() : "en",
-          question: questionMatch[1].trim(),
-          answer: answerMatch[1].trim()
-        };
+          if (existingIndex >= 0) {
+            if (trainingData[existingIndex].answer.trim() !== newA) {
+              trainingData[existingIndex].answer = item.answer;
+              trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
+            }
+          } else {
+            trainingData.unshift({
+              question: item.question,
+              answer: item.answer,
+              lang: item.lang || "en"
+            });
+          }
 
-        // Merge with existing data
-        const existingIndex = trainingData.findIndex(td => td.question.trim().toLowerCase() === newItem.question.toLowerCase());
-        if (existingIndex >= 0) {
-          trainingData[existingIndex].answer = newItem.answer;
-          trainingData[existingIndex].lang = newItem.lang;
-        } else {
-          trainingData.unshift(newItem);
+          // Sync to backend
+          try {
+            await fetch(TRAIN_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                question: item.question,
+                answer: item.answer,
+                lang: item.lang || "en"
+              }),
+            });
+          } catch (err) {
+            console.error("Failed to upload:", item, err);
+          }
         }
 
-        // Sync to backend
-        try {
-          await fetch(TRAIN_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newItem),
-          });
-        } catch (err) {
-          console.error("Failed to upload:", newItem, err);
-        }
-      }
-
-      displayData(trainingData);
-      alert("Training data imported and merged successfully!");
+        displayData(trainingData);
+        alert("Training data imported and merged successfully!");
+      };
+      reader.readAsArrayBuffer(file);
     });
 
     // Auto-refresh every 5 seconds
