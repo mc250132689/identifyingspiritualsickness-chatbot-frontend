@@ -1,70 +1,36 @@
 <!DOCTYPE html>
-<html lang="ms">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🕋 Latih Chatbot Rawatan Islam</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-emerald-50 min-h-screen flex flex-col">
-    <!-- Header -->
-    <header
-      class="bg-emerald-700 text-white text-center py-4 shadow-md text-xl font-semibold"
-    >
-      📚 Latihan Chatbot Rawatan Islam
-    </header>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧠 Train the Chatbot | Spiritual Sickness</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🧠 Train the Ruqyah Chatbot</h1>
+    <p>Add knowledge based on Quran & Sunnah</p>
+    <nav>
+      <a href="chat.html">Chat</a>
+      <a href="train.html" class="active">Train</a>
+    </nav>
+  </header>
 
-    <!-- Training Form -->
-    <main class="flex-1 flex items-center justify-center">
-      <form
-        id="train-form"
-        class="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md space-y-4"
-      >
-        <h2 class="text-emerald-800 text-lg font-bold text-center mb-4">
-          Tambah Soalan & Jawapan (Ruqyah / Sihir / Gangguan Jin)
-        </h2>
+  <main class="train-container">
+    <label>🧍 User Question:</label>
+    <textarea id="train-question" placeholder="Contoh: Apakah tanda orang terkena sihir?"></textarea>
 
-        <div>
-          <label for="train-question" class="block font-medium text-gray-700">
-            Soalan:
-          </label>
-          <textarea
-            id="train-question"
-            rows="2"
-            class="w-full border border-emerald-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-emerald-200"
-            placeholder="Contoh: Apakah tanda seseorang terkena sihir pemisah?"
-          ></textarea>
-        </div>
+    <label>🤖 Correct Islamic Answer:</label>
+    <textarea id="train-answer" placeholder="Contoh: Tanda sihir termasuk mimpi menakutkan, rasa berat pada tubuh, dll..."></textarea>
 
-        <div>
-          <label for="train-answer" class="block font-medium text-gray-700">
-            Jawapan:
-          </label>
-          <textarea
-            id="train-answer"
-            rows="4"
-            class="w-full border border-emerald-300 rounded-lg p-2 focus:outline-none focus:ring focus:ring-emerald-200"
-            placeholder="Contoh: Antara tanda sihir pemisah ialah kebencian suami isteri tanpa sebab..."
-          ></textarea>
-        </div>
+    <button id="train-btn">Submit Training Data</button>
+    <p id="train-status"></p>
+  </main>
 
-        <button
-          type="submit"
-          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-semibold"
-        >
-          Simpan Latihan
-        </button>
+  <footer>
+    <p>💫 Ruqyah learning tool — always Quran & Sunnah based.</p>
+  </footer>
 
-        <div class="text-center mt-4">
-          <a
-            href="chat.html"
-            class="text-emerald-700 hover:underline text-sm font-medium"
-            >⬅️ Kembali ke Chatbot</a
-          >
-        </div>
-      </form>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="train.js"></script>
+</body>
 </html>
