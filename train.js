@@ -13,11 +13,12 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Normalize line breaks and basic formatting
+  // Format answer for chat usage
   answer = answer
     .replace(/\r\n|\r/g, "\n")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>");
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>");
 
   responseText.textContent = "Submitting...";
 
@@ -27,8 +28,9 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, answer }),
     });
+
     const data = await res.json();
-    responseText.innerHTML = data.message;
+    responseText.innerHTML = data.message || "Training data submitted successfully!";
 
     // Clear inputs
     document.getElementById("question").value = "";
