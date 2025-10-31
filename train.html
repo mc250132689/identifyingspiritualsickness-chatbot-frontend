@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🧠 Train the Chatbot | Spiritual Sickness</title>
+  <title>Train Chatbot — Ruqyah Knowledge</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>🧠 Train the Ruqyah Chatbot</h1>
-    <p>Add knowledge based on Quran & Sunnah</p>
-  </header>
+  <div class="train-container">
+    <h2>📖 Train the Chatbot</h2>
+    <p>Add Islamic-based healing knowledge (BM, EN, Arabic)</p>
 
-  <main class="train-container">
-    <label>🧍 User Question:</label>
-    <textarea id="train-question" placeholder="Contoh: Apakah tanda orang terkena sihir?"></textarea>
+    <label>Language:</label>
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="ms">Bahasa Melayu</option>
+      <option value="ar">Arabic</option>
+    </select>
 
-    <label>🤖 Correct Islamic Answer:</label>
-    <textarea id="train-answer" placeholder="Contoh: Tanda sihir termasuk mimpi menakutkan, rasa berat pada tubuh, dll..."></textarea>
+    <label>Question/Keyword:</label>
+    <input type="text" id="question" placeholder="e.g. sihir, jin, ruqyah..." />
 
-    <button id="train-btn">Submit Training Data</button>
-    <p id="train-status"></p>
-  </main>
+    <label>Answer:</label>
+    <textarea id="answer" rows="5" placeholder="Enter response based on Quran & Sunnah..."></textarea>
 
-  <footer>
-    <p>💫 Ruqyah learning tool — always Quran & Sunnah based.</p>
-  </footer>
+    <button id="train-btn">Submit Training</button>
+    <p id="train-status">🕋 Waiting for submission...</p>
+  </div>
 
   <script src="train.js"></script>
 </body>
