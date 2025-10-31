@@ -1,40 +1,35 @@
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+
 const chatBox = document.getElementById("chat-box");
-const userInput = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
-const status = document.getElementById("status");
-
-sendBtn.addEventListener("click", sendMessage);
-userInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
-async function sendMessage() {
-  const message = userInput.value.trim();
-  if (!message) return;
-
-  appendMessage("🧍", message);
-  userInput.value = "";
-
-  status.innerText = "🤲 Generating response...";
-  try {
-    const res = await fetch("https://identifyingspiritualsickness-chatbot.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: message }),
-    });
-
-    const data = await res.json();
-    appendMessage("🤖", data.response);
-  } catch (err) {
-    appendMessage("🤖", "⚠️ Error: Cannot connect to the server.");
-  }
-  status.innerText = "🤲 Ready to assist...";
-}
+const input = document.getElementById("user-input");
 
 function appendMessage(sender, text) {
   const msg = document.createElement("div");
-  msg.classList.add("message");
-  msg.innerHTML = `<b>${sender}:</b> ${text}`;
+  msg.className = sender === "user" ? "user-msg" : "bot-msg";
+  msg.innerHTML = text.replace(/\n/g, "<br>");
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+  const userText = input.value.trim();
+  if (!userText) return;
+
+  appendMessage("user", `🧍: ${userText}`);
+  input.value = "";
+
+  const loadingMsg = document.createElement("div");
+  loadingMsg.className = "bot-msg";
+  loadingMsg.textContent = "🤲 Generating response...";
+  chatBox.appendChild(loadingMsg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userText }),
+  });
+
+  const data = await res.json();
+  loadingMsg.innerHTML = `🤖: ${data.response}`;
 }
