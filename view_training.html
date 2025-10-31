@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
@@ -30,6 +31,9 @@
       <option value="ar">Arabic (AR)</option>
     </select>
     <button id="refresh-btn">Refresh Data</button>
+    <button id="export-btn">Export to Excel</button>
+    <input type="file" id="import-file" accept=".xlsx,.xls" style="display:none;">
+    <button id="import-btn">Import from Excel</button>
   </div>
 
   <div id="training-container"></div>
@@ -39,6 +43,9 @@
     const refreshBtn = document.getElementById("refresh-btn");
     const searchInput = document.getElementById("search-input");
     const langFilter = document.getElementById("lang-filter");
+    const exportBtn = document.getElementById("export-btn");
+    const importBtn = document.getElementById("import-btn");
+    const importFile = document.getElementById("import-file");
 
     const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
     let trainingData = [];
@@ -100,8 +107,39 @@
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
+    // Export training data to Excel
+    exportBtn.addEventListener("click", () => {
+      if (!trainingData.length) return alert("No data to export!");
+      const ws = XLSX.utils.json_to_sheet(trainingData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
+      XLSX.writeFile(wb, "training_data.xlsx");
+    });
+
+    // Import training data from Excel
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        if (json.length) {
+          trainingData = json.reverse();
+          displayData(trainingData);
+          alert("Training data imported successfully! Please refresh backend if needed.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
     // Load automatically
     loadTrainingData();
+
   </script>
 </body>
 </html>
