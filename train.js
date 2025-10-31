@@ -32,9 +32,14 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     responseText.innerHTML = data.message || "Training data submitted successfully!";
 
-    // Clear inputs
+    // Auto-clear input fields
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
+
+    // Update in-memory chat trained answers immediately
+    if (window.chatAddTrainedAnswer) {
+      window.chatAddTrainedAnswer(question, answer);
+    }
   } catch (err) {
     responseText.textContent = "Error submitting training data.";
   }
