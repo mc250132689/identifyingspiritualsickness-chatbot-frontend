@@ -57,7 +57,7 @@
 
     function displayData(data) {
       container.innerHTML = "";
-      if (data.length === 0) {
+      if (!data.length) {
         container.innerHTML = "<p>No training data found.</p>";
         return;
       }
@@ -91,10 +91,7 @@
       const lang = langFilter.value;
 
       if (lang) filtered = filtered.filter(item => item.lang === lang);
-      if (query) filtered = filtered.filter(item =>
-        item.question.toLowerCase().includes(query) ||
-        item.answer.toLowerCase().includes(query)
-      );
+      if (query) filtered = filtered.filter(item => item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query));
 
       displayData(filtered);
     }
@@ -103,6 +100,7 @@
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
+    // Load automatically
     loadTrainingData();
   </script>
 </body>
