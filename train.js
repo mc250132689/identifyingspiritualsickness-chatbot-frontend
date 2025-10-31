@@ -5,11 +5,17 @@ const preview = document.getElementById("train-preview");
 
 // Format answer for chat display
 function formatAnswer(text) {
-  return text
+  if (!text) return "";
+
+  let formatted = text
     .replace(/\r\n|\r/g, "\n")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    // Headings
     .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
+    // Bold
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    // Italic
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    // Tables
     .replace(/\|(.+?)\|/gs, (match) => {
       const rows = match.trim().split("\n").filter(r => r.trim());
       const tableRows = rows.map(row => {
@@ -17,8 +23,15 @@ function formatAnswer(text) {
         return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
       }).join("");
       return `<table class="chat-table">${tableRows}</table>`;
-    })
-    .replace(/\n/g, "<br>");
+    });
+
+  // Wrap paragraphs
+  formatted = formatted
+    .split(/\n{2,}/)
+    .map(p => `<p>${p.trim()}</p>`)
+    .join("");
+
+  return formatted;
 }
 
 form.addEventListener("submit", async (e) => {
