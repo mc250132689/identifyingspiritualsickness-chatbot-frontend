@@ -1,4 +1,4 @@
-const TRAIN_URL = "https://<your-backend-domain>/train";
+const TRAIN_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 
 async function trainChatbot() {
   const q = document.getElementById("train-question").value.trim();
