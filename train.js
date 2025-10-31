@@ -1,9 +1,8 @@
-const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/train";
 const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
-// Format answer for chat display
 function formatAnswer(text) {
   return text
     .replace(/\r\n|\r/g, "\n")
@@ -11,10 +10,9 @@ function formatAnswer(text) {
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
     .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
     .replace(/\|(.+?)\|/gs, (match) => {
-      // Convert markdown-style table into HTML table
       const rows = match.trim().split("\n").filter(r => r.trim());
       const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
+        const cols = row.split("|").map(c => c.trim()).filter(c => c);
         return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
       }).join("");
       return `<table class="chat-table">${tableRows}</table>`;
@@ -36,7 +34,6 @@ form.addEventListener("submit", async (e) => {
   responseText.textContent = "Submitting...";
 
   try {
-    // Send training data to backend
     const res = await fetch(TRAIN_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,14 +43,11 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     responseText.innerHTML = data.message || "Training data submitted successfully!";
 
-    // Auto-clear input fields
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
 
-    // Format answer for chat bubble display
     const formattedAnswer = formatAnswer(answer);
 
-    // Show preview in chat-bubble style
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
     userBubble.textContent = question;
@@ -70,7 +64,7 @@ form.addEventListener("submit", async (e) => {
     preview.appendChild(pair);
     preview.scrollTop = preview.scrollHeight;
 
-    // Update in-memory chat trained answers immediately
+    // Update chat in-memory answers
     if (window.chatAddTrainedAnswer) {
       window.chatAddTrainedAnswer(question, answer);
     }
