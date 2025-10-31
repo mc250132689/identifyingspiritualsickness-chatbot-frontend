@@ -28,8 +28,8 @@ async function loadTrainedAnswers() {
 // Initial load
 loadTrainedAnswers();
 
-// Auto-refresh trained answers every 5 seconds
-setInterval(loadTrainedAnswers, 5000);
+// Auto-refresh trained answers every 30 seconds
+setInterval(loadTrainedAnswers, 30000);
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
@@ -43,7 +43,7 @@ function appendMessage(userText, botText) {
 
   const userMsg = document.createElement("div");
   userMsg.className = "user-msg";
-  userMsg.innerHTML = userText;
+  userMsg.textContent = userText;
   container.appendChild(userMsg);
 
   const botMsg = document.createElement("div");
@@ -57,33 +57,23 @@ function appendMessage(userText, botText) {
   return botMsg;
 }
 
-// Format answer preserving paragraphs, headings, tables, bold, italic
+// Format bot answer with preserved spacing, paragraphs, bold/italic, tables
 function formatBotAnswer(text) {
   if (!text) return "";
 
   let formatted = text
-    .replace(/\r\n|\r/g, "\n")
-    // Headings (##)
-    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
-    // Bold **
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    // Italic *
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    // Tables
-    .replace(/\|(.+?)\|/gs, (match) => {
-      const rows = match.trim().split("\n").filter(r => r.trim());
+    .replace(/\r\n|\r|\n/g, "<br>") // preserve line breaks
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // bold
+    .replace(/\*(.*?)\*/g, "<em>$1</em>") // italic
+    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>") // headings
+    .replace(/\|(.+?)\|/gs, (match) => { // tables
+      const rows = match.trim().split("<br>").filter(r => r.trim());
       const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
+        const cols = row.split("|").map(c => c.trim()).filter(c => c);
         return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
       }).join("");
       return `<table class="chat-table">${tableRows}</table>`;
     });
-
-  // Wrap each paragraph in <p>
-  formatted = formatted
-    .split(/\n{2,}/)
-    .map(p => `<p>${p.trim()}</p>`)
-    .join("");
 
   return formatted;
 }
