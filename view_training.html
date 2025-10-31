@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
     #controls { max-width: 800px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     #training-container { max-width: 800px; margin: 20px auto; }
-    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; }
-    .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; }
+    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; }
+    .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; white-space: pre-wrap; }
     .train-user-msg { align-self: flex-end; background-color: #d1e7ff; }
     .train-bot-msg { align-self: flex-start; background-color: #e2e2e2; }
     .train-lang { font-size: 12px; color: #555; margin-bottom: 3px; }
@@ -31,143 +31,139 @@
       <option value="ar">Arabic (AR)</option>
     </select>
     <button id="refresh-btn">Refresh Data</button>
-    <button id="export-btn">Export to Excel</button>
-    <input type="file" id="import-file" accept=".xlsx,.xls" style="display:none;">
-    <button id="import-btn">Import from Excel</button>
+    <button id="export-btn">Export Excel</button>
+    <button id="import-btn">Import Excel</button>
+    <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
   </div>
 
   <div id="training-container"></div>
 
   <script>
-  const container = document.getElementById("training-container");
-  const refreshBtn = document.getElementById("refresh-btn");
-  const searchInput = document.getElementById("search-input");
-  const langFilter = document.getElementById("lang-filter");
-  const exportBtn = document.getElementById("export-btn");
-  const importBtn = document.getElementById("import-btn");
-  const importFile = document.getElementById("import-file");
+    const container = document.getElementById("training-container");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const searchInput = document.getElementById("search-input");
+    const langFilter = document.getElementById("lang-filter");
+    const exportBtn = document.getElementById("export-btn");
+    const importBtn = document.getElementById("import-btn");
+    const importFile = document.getElementById("import-file");
 
-  const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-  const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
-  let trainingData = [];
+    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+    let trainingData = [];
 
-  // Load training data from backend
-  async function loadTrainingData() {
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      trainingData = data.training_data.reverse(); // show latest first
-      displayData(trainingData);
-    } catch (err) {
-      container.innerHTML = "Error loading data.";
-    }
-  }
-
-  // Display data in container
-  function displayData(data) {
-    container.innerHTML = "";
-    if (!data.length) {
-      container.innerHTML = "<p>No training data found.</p>";
-      return;
+    // Load training data from backend (connected to training_data.json)
+    async function loadTrainingData() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        trainingData = data.training_data.reverse();
+        displayData(trainingData);
+      } catch (err) {
+        container.innerHTML = "Error loading data.";
+      }
     }
 
-    data.forEach(item => {
-      const pair = document.createElement("div");
-      pair.className = "train-msg-pair";
-
-      const langLabel = document.createElement("div");
-      langLabel.className = "train-lang";
-      langLabel.textContent = `Language: ${item.lang ? item.lang.toUpperCase() : "N/A"}`;
-      pair.appendChild(langLabel);
-
-      const userMsg = document.createElement("div");
-      userMsg.className = "train-user-msg";
-      userMsg.innerHTML = item.question.replace(/\n/g, "<br>");
-
-      const botMsg = document.createElement("div");
-      botMsg.className = "train-bot-msg";
-      botMsg.innerHTML = item.answer.replace(/\n/g, "<br>");
-
-      pair.appendChild(userMsg);
-      pair.appendChild(botMsg);
-      container.appendChild(pair);
-    });
-  }
-
-  // Search & filter function
-  function filterAndSearch() {
-    let filtered = trainingData;
-    const query = searchInput.value.toLowerCase();
-    const lang = langFilter.value;
-
-    if (lang) filtered = filtered.filter(item => item.lang === lang);
-    if (query) filtered = filtered.filter(item =>
-      item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
-    );
-
-    displayData(filtered);
-  }
-
-  searchInput.addEventListener("input", filterAndSearch);
-  langFilter.addEventListener("change", filterAndSearch);
-  refreshBtn.addEventListener("click", loadTrainingData);
-
-  // Export to Excel
-  exportBtn.addEventListener("click", () => {
-    if (!trainingData.length) return alert("No data to export!");
-    const ws = XLSX.utils.json_to_sheet(trainingData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
-    XLSX.writeFile(wb, "training_data.xlsx");
-  });
-
-  // Import from Excel
-  importBtn.addEventListener("click", () => importFile.click());
-  importFile.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
-
-      if (!json.length) return alert("No data found in Excel!");
-
-      // Display in viewer
-      trainingData = json.reverse();
-      displayData(trainingData);
-
-      // Send imported data to backend
-      for (let item of json) {
-        if (item.question && item.answer) {
-          try {
-            await fetch(TRAIN_API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question: item.question,
-                answer: item.answer,
-                lang: item.lang || "en"
-              }),
-            });
-          } catch (err) {
-            console.error("Failed to upload:", item, err);
-          }
-        }
+    function displayData(data) {
+      container.innerHTML = "";
+      if (!data.length) {
+        container.innerHTML = "<p>No training data found.</p>";
+        return;
       }
 
-      alert("Training data imported and synced to backend!");
-    };
-    reader.readAsArrayBuffer(file);
-  });
+      data.forEach(item => {
+        const pair = document.createElement("div");
+        pair.className = "train-msg-pair";
 
-  // Auto-refresh every 5 seconds to view all recorded data live
-  loadTrainingData();
-</script>
+        const langLabel = document.createElement("div");
+        langLabel.className = "train-lang";
+        langLabel.textContent = `Language: ${item.lang ? item.lang.toUpperCase() : "N/A"}`;
+        pair.appendChild(langLabel);
 
+        const userMsg = document.createElement("div");
+        userMsg.className = "train-user-msg";
+        userMsg.textContent = item.question; // preserves line breaks and spacing
 
+        const botMsg = document.createElement("div");
+        botMsg.className = "train-bot-msg";
+        botMsg.textContent = item.answer; // preserves line breaks and spacing
+
+        pair.appendChild(userMsg);
+        pair.appendChild(botMsg);
+        container.appendChild(pair);
+      });
+    }
+
+    function filterAndSearch() {
+      let filtered = trainingData;
+      const query = searchInput.value.toLowerCase();
+      const lang = langFilter.value;
+
+      if (lang) filtered = filtered.filter(item => item.lang === lang);
+      if (query) filtered = filtered.filter(item =>
+        item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
+      );
+
+      displayData(filtered);
+    }
+
+    searchInput.addEventListener("input", filterAndSearch);
+    langFilter.addEventListener("change", filterAndSearch);
+    refreshBtn.addEventListener("click", loadTrainingData);
+
+    // Export to Excel
+    exportBtn.addEventListener("click", () => {
+      if (!trainingData.length) return alert("No data to export!");
+      const ws = XLSX.utils.json_to_sheet(trainingData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
+      XLSX.writeFile(wb, "training_data.xlsx");
+    });
+
+    // Import from Excel
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        if (!json.length) return alert("No data found in Excel!");
+
+        trainingData = json.reverse();
+        displayData(trainingData);
+
+        // Sync imported data to backend
+        for (let item of json) {
+          if (item.question && item.answer) {
+            try {
+              await fetch(TRAIN_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  question: item.question,
+                  answer: item.answer,
+                  lang: item.lang || "en"
+                }),
+              });
+            } catch (err) {
+              console.error("Failed to upload:", item, err);
+            }
+          }
+        }
+
+        alert("Training data imported and synced to backend!");
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Auto-refresh every 5 seconds to view all recorded data live
+    loadTrainingData();
+    setInterval(loadTrainingData, 5000);
+  </script>
 </body>
 </html>
