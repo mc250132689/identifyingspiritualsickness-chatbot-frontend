@@ -3,6 +3,16 @@ const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
+// Format answer for chat display
+function formatAnswer(text) {
+  return text
+    .replace(/\r\n|\r/g, "\n")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
+    .replace(/\n/g, "<br>");
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -14,16 +24,10 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Format answer for chat usage
-  answer = answer
-    .replace(/\r\n|\r/g, "\n")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>");
-
   responseText.textContent = "Submitting...";
 
   try {
+    // Send training data to backend
     const res = await fetch(TRAIN_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,6 +41,9 @@ form.addEventListener("submit", async (e) => {
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
 
+    // Format answer for chat bubble display
+    const formattedAnswer = formatAnswer(answer);
+
     // Show preview in chat-bubble style
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
@@ -44,7 +51,7 @@ form.addEventListener("submit", async (e) => {
 
     const botBubble = document.createElement("div");
     botBubble.className = "train-bot-msg";
-    botBubble.innerHTML = answer.replace(/\n/g, "<br>");
+    botBubble.innerHTML = formattedAnswer;
 
     const pair = document.createElement("div");
     pair.className = "train-msg-pair";
