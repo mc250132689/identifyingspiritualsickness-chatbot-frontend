@@ -29,12 +29,27 @@ function appendMessage(userText, botText) {
   return botMsg;
 }
 
+// --- ENTER / SHIFT+ENTER functionality ---
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    if (e.shiftKey) {
+      // Allow newline with SHIFT+ENTER
+      return;
+    } else {
+      // ENTER alone sends message
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+});
+
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
 
   input.value = "";
 
+  // Check trained answers first
   const trained = trainedAnswers[userText.toLowerCase()];
   if (trained) {
     appendMessage(`🧍: ${userText}`, `🤖: ${trained}`);
