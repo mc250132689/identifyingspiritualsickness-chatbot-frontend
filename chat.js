@@ -13,6 +13,7 @@ async function loadTrainedAnswers() {
     const res = await fetch(TRAIN_DATA_URL);
     const data = await res.json();
     if (data.training_data && Array.isArray(data.training_data)) {
+      trainedAnswers = {}; // reset
       data.training_data.forEach(item => {
         trainedAnswers[item.question.toLowerCase()] = item.answer;
       });
@@ -25,9 +26,7 @@ async function loadTrainedAnswers() {
 
 // Initial load
 loadTrainedAnswers();
-
-// Auto-refresh trained answers every 30 seconds
-setInterval(loadTrainedAnswers, 30000);
+setInterval(loadTrainedAnswers, 30000); // refresh every 30s
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
@@ -109,16 +108,14 @@ input.addEventListener("keydown", (e) => {
   }
 });
 
-// === Live suggestion while typing ===
+// Live suggestion while typing
 input.addEventListener("input", () => {
   const currentText = input.value.trim().toLowerCase();
   if (!currentText) return;
 
-  // Find exact or closest match in trained answers
   const matchKey = Object.keys(trainedAnswers).find(q => q.startsWith(currentText));
   if (matchKey) {
     const previewText = trainedAnswers[matchKey];
-    // Optionally show a temporary preview in chat-box or below input
     let previewElem = document.getElementById("live-preview");
     if (!previewElem) {
       previewElem = document.createElement("div");
