@@ -14,7 +14,7 @@ async function sendMessage() {
   loading.style.display = "block";
 
   try {
-    const response = await fetch("https://your-backend-url.onrender.com/chat", {
+    const response = await fetch("https://identifyingspiritualsickness-chatbot.onrender.com/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: userMessage, language }),
