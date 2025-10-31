@@ -1,25 +1,46 @@
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+// Backend API
+const API_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/chat";
+const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/get-training-data";
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 
 // In-memory dictionary for trained Q&A
-const trainedAnswers = {};
+let trainedAnswers = {};
 
+// Fetch latest trained answers from backend
+async function loadTrainedAnswers() {
+  try {
+    const res = await fetch(TRAIN_DATA_URL);
+    const data = await res.json();
+    if (data.training_data && Array.isArray(data.training_data)) {
+      data.training_data.forEach(item => {
+        trainedAnswers[item.question.toLowerCase()] = item.answer;
+      });
+    }
+    console.log("Loaded trained answers:", Object.keys(trainedAnswers).length);
+  } catch (err) {
+    console.error("Failed to load trained answers:", err);
+  }
+}
+
+// Call it on page load
+loadTrainedAnswers();
+
+// Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
   trainedAnswers[question.toLowerCase()] = answer;
 };
 
+// Append message to chat
 function appendMessage(userText, botText) {
   const container = document.createElement("div");
   container.className = "message-pair";
 
-  // User message
   const userMsg = document.createElement("div");
   userMsg.className = "user-msg";
   userMsg.innerHTML = userText;
   container.appendChild(userMsg);
 
-  // Bot message
   const botMsg = document.createElement("div");
   botMsg.className = "bot-msg";
   botMsg.innerHTML = botText || "🤲 Generating response...";
@@ -31,6 +52,7 @@ function appendMessage(userText, botText) {
   return botMsg;
 }
 
+// Send message function
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
@@ -55,16 +77,15 @@ async function sendMessage() {
 
     const data = await res.json();
 
-    // Format the response for readability
     let formatted = data.response
-      .replace(/\n/g, "<br>")                         // Line breaks
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")             // Italic
-      .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>")   // Subheadings
-      .replace(/\|(.+?)\|/g, (match) => {               // Convert tables to HTML
-        const rows = match.trim().split("\n").filter(r => r.trim());
+      .replace(/\n/g, "<br>")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>")
+      .replace(/\|(.+?)\|/gs, (match) => {
+        const rows = match.trim().split("<br>").filter(r => r.trim());
         const tableRows = rows.map(row => {
-          const cols = row.split("|").map(c => c.trim());
+          const cols = row.split("|").map(c => c.trim()).filter(c => c);
           return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
         }).join("");
         return `<table class="chat-table">${tableRows}</table>`;
@@ -73,10 +94,11 @@ async function sendMessage() {
     botMsgElem.innerHTML = `🤖: ${formatted}`;
   } catch (err) {
     botMsgElem.innerHTML = "🤖: Error connecting to backend.";
+    console.error(err);
   }
 }
 
-// Send on ENTER, allow SHIFT+ENTER for new line
+// ENTER = send, SHIFT+ENTER = newline
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
