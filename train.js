@@ -1,4 +1,4 @@
-const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot-2u4t.onrender.com/train";
+const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
