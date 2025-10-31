@@ -57,6 +57,37 @@ function appendMessage(userText, botText) {
   return botMsg;
 }
 
+// Format answer preserving paragraphs, headings, tables, bold, italic
+function formatBotAnswer(text) {
+  if (!text) return "";
+
+  let formatted = text
+    .replace(/\r\n|\r/g, "\n")
+    // Headings (##)
+    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
+    // Bold **
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    // Italic *
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    // Tables
+    .replace(/\|(.+?)\|/gs, (match) => {
+      const rows = match.trim().split("\n").filter(r => r.trim());
+      const tableRows = rows.map(row => {
+        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
+        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      }).join("");
+      return `<table class="chat-table">${tableRows}</table>`;
+    });
+
+  // Wrap each paragraph in <p>
+  formatted = formatted
+    .split(/\n{2,}/)
+    .map(p => `<p>${p.trim()}</p>`)
+    .join("");
+
+  return formatted;
+}
+
 // Send message
 async function sendMessage() {
   const userText = input.value.trim();
@@ -67,7 +98,7 @@ async function sendMessage() {
   // Check trained answers first
   const trained = trainedAnswers[userText.toLowerCase()];
   if (trained) {
-    appendMessage(`🧍: ${userText}`, `🤖: ${trained}`);
+    appendMessage(`🧍: ${userText}`, `🤖: ${formatBotAnswer(trained)}`);
     return;
   }
 
@@ -81,22 +112,7 @@ async function sendMessage() {
     });
 
     const data = await res.json();
-
-    let formatted = data.response
-      .replace(/\n/g, "<br>")
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>")
-      .replace(/\|(.+?)\|/gs, (match) => {
-        const rows = match.trim().split("<br>").filter(r => r.trim());
-        const tableRows = rows.map(row => {
-          const cols = row.split("|").map(c => c.trim()).filter(c => c);
-          return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
-        }).join("");
-        return `<table class="chat-table">${tableRows}</table>`;
-      });
-
-    botMsgElem.innerHTML = `🤖: ${formatted}`;
+    botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
   } catch (err) {
     botMsgElem.innerHTML = "🤖: Error connecting to backend.";
     console.error(err);
