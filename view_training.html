@@ -38,7 +38,7 @@
 
   <div id="training-container"></div>
 
-<script>
+  <script>
   const container = document.getElementById("training-container");
   const refreshBtn = document.getElementById("refresh-btn");
   const searchInput = document.getElementById("search-input");
@@ -51,18 +51,19 @@
   const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
   let trainingData = [];
 
+  // Load training data from backend
   async function loadTrainingData() {
-    container.innerHTML = "Loading...";
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      trainingData = data.training_data.reverse();
+      trainingData = data.training_data.reverse(); // show latest first
       displayData(trainingData);
     } catch (err) {
       container.innerHTML = "Error loading data.";
     }
   }
 
+  // Display data in container
   function displayData(data) {
     container.innerHTML = "";
     if (!data.length) {
@@ -81,7 +82,7 @@
 
       const userMsg = document.createElement("div");
       userMsg.className = "train-user-msg";
-      userMsg.innerHTML = item.question;
+      userMsg.innerHTML = item.question.replace(/\n/g, "<br>");
 
       const botMsg = document.createElement("div");
       botMsg.className = "train-bot-msg";
@@ -93,13 +94,16 @@
     });
   }
 
+  // Search & filter function
   function filterAndSearch() {
     let filtered = trainingData;
     const query = searchInput.value.toLowerCase();
     const lang = langFilter.value;
 
     if (lang) filtered = filtered.filter(item => item.lang === lang);
-    if (query) filtered = filtered.filter(item => item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query));
+    if (query) filtered = filtered.filter(item =>
+      item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
+    );
 
     displayData(filtered);
   }
@@ -108,7 +112,7 @@
   langFilter.addEventListener("change", filterAndSearch);
   refreshBtn.addEventListener("click", loadTrainingData);
 
-  // Export training data to Excel
+  // Export to Excel
   exportBtn.addEventListener("click", () => {
     if (!trainingData.length) return alert("No data to export!");
     const ws = XLSX.utils.json_to_sheet(trainingData);
@@ -117,7 +121,7 @@
     XLSX.writeFile(wb, "training_data.xlsx");
   });
 
-  // Import training data from Excel
+  // Import from Excel
   importBtn.addEventListener("click", () => importFile.click());
   importFile.addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -160,9 +164,10 @@
     reader.readAsArrayBuffer(file);
   });
 
-  // Load automatically
+  // Auto-refresh every 5 seconds to view all recorded data live
   loadTrainingData();
 </script>
+
 
 </body>
 </html>
