@@ -120,46 +120,58 @@
     });
 
     // Import from Excel
-    importBtn.addEventListener("click", () => importFile.click());
     importFile.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    const data = new Uint8Array(evt.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json(sheet);
 
-        if (!json.length) return alert("No data found in Excel!");
+    if (!json.length) return alert("No data found in Excel!");
 
-        trainingData = json.reverse();
-        displayData(trainingData);
+    // Merge imported data with existing trainingData
+    for (let item of json) {
+      if (!item.question || !item.answer) continue;
 
-        // Sync imported data to backend
-        for (let item of json) {
-          if (item.question && item.answer) {
-            try {
-              await fetch(TRAIN_API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  question: item.question,
-                  answer: item.answer,
-                  lang: item.lang || "en"
-                }),
-              });
-            } catch (err) {
-              console.error("Failed to upload:", item, err);
-            }
-          }
-        }
+      const existingIndex = trainingData.findIndex(td => td.question === item.question);
+      if (existingIndex >= 0) {
+        // Update existing answer and language
+        trainingData[existingIndex].answer = item.answer;
+        trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
+      } else {
+        // Add new entry
+        trainingData.unshift({
+          question: item.question,
+          answer: item.answer,
+          lang: item.lang || "en"
+        });
+      }
 
-        alert("Training data imported and synced to backend!");
-      };
-      reader.readAsArrayBuffer(file);
-    });
+      // Sync to backend individually
+      try {
+        await fetch(TRAIN_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: item.question,
+            answer: item.answer,
+            lang: item.lang || "en"
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to upload:", item, err);
+      }
+    }
+
+    displayData(trainingData);
+    alert("Training data imported and merged successfully!");
+  };
+  reader.readAsArrayBuffer(file);
+});
 
     // Auto-refresh every 5 seconds to view all recorded data live
     loadTrainingData();
