@@ -3,29 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Train Chatbot — Ruqyah Knowledge</title>
+  <title>Train Chatbot</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="train-container">
-    <h2>📖 Train the Chatbot</h2>
-    <p>Add Islamic-based healing knowledge (BM, EN, Arabic)</p>
-
-    <label>Language:</label>
-    <select id="lang">
-      <option value="en">English</option>
-      <option value="ms">Bahasa Melayu</option>
-      <option value="ar">Arabic</option>
-    </select>
-
-    <label>Question/Keyword:</label>
-    <input type="text" id="question" placeholder="e.g. sihir, jin, ruqyah..." />
-
-    <label>Answer:</label>
-    <textarea id="answer" rows="5" placeholder="Enter response based on Quran & Sunnah..."></textarea>
-
-    <button id="train-btn">Submit Training</button>
-    <p id="train-status">🕋 Waiting for submission...</p>
+  <div class="container">
+    <h1>🕌 Train the Spiritual Sickness Chatbot</h1>
+    <form id="train-form">
+      <textarea id="question" placeholder="Enter question (any language)..."></textarea>
+      <textarea id="answer" placeholder="Enter Islamic explanation (same language)..."></textarea>
+      <button type="submit">Submit</button>
+    </form>
+    <p id="train-response"></p>
   </div>
 
   <script src="train.js"></script>
