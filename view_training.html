@@ -4,14 +4,16 @@
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
-  <!-- DOCX library for export -->
+  <!-- XLSX for Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- DOCX for Word -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.6.0/docx.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
-    #controls { max-width: 800px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-    #training-container { max-width: 800px; margin: 20px auto; }
+    #controls { max-width: 900px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    #training-container { max-width: 900px; margin: 20px auto; }
     .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; }
     .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; white-space: pre-wrap; }
     .train-user-msg { align-self: flex-end; background-color: #d1e7ff; }
@@ -33,7 +35,8 @@
       <option value="ar">Arabic (AR)</option>
     </select>
     <button id="refresh-btn">Refresh Data</button>
-    <button id="export-btn">Export DOCX</button>
+    <button id="export-excel-btn">Export Excel</button>
+    <button id="export-docx-btn">Export DOCX</button>
     <button id="import-btn">Import Excel</button>
     <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
   </div>
@@ -45,7 +48,8 @@
     const refreshBtn = document.getElementById("refresh-btn");
     const searchInput = document.getElementById("search-input");
     const langFilter = document.getElementById("lang-filter");
-    const exportBtn = document.getElementById("export-btn");
+    const exportExcelBtn = document.getElementById("export-excel-btn");
+    const exportDocxBtn = document.getElementById("export-docx-btn");
     const importBtn = document.getElementById("import-btn");
     const importFile = document.getElementById("import-file");
 
@@ -53,7 +57,7 @@
     const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
     let trainingData = [];
 
-    // Load training data from backend (connected to training_data.json)
+    // Load training data from backend
     async function loadTrainingData() {
       try {
         const res = await fetch(API_URL);
@@ -112,10 +116,19 @@
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
-    // Export to DOCX
-    exportBtn.addEventListener("click", async () => {
+    // Export to Excel
+    exportExcelBtn.addEventListener("click", () => {
       if (!trainingData.length) return alert("No data to export!");
-      
+      const ws = XLSX.utils.json_to_sheet(trainingData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
+      XLSX.writeFile(wb, "training_data.xlsx");
+    });
+
+    // Export to DOCX
+    exportDocxBtn.addEventListener("click", async () => {
+      if (!trainingData.length) return alert("No data to export!");
+
       const Document = docx.Document;
       const Packer = docx.Packer;
       const Paragraph = docx.Paragraph;
@@ -138,7 +151,8 @@
       saveAs(blob, "training_data.docx");
     });
 
-    // Import from Excel
+    // Import Excel
+    importBtn.addEventListener("click", () => importFile.click());
     importFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -152,7 +166,6 @@
 
         if (!json.length) return alert("No data found in Excel!");
 
-        // Merge imported data with existing trainingData
         for (let item of json) {
           if (!item.question || !item.answer) continue;
 
@@ -176,7 +189,6 @@
             });
           }
 
-          // Sync to backend
           try {
             await fetch(TRAIN_API_URL, {
               method: "POST",
