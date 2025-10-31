@@ -28,8 +28,8 @@ async function loadTrainedAnswers() {
 // Initial load
 loadTrainedAnswers();
 
-// Auto-refresh trained answers every 30 seconds
-setInterval(loadTrainedAnswers, 30000);
+// Auto-refresh trained answers every 5 seconds
+setInterval(loadTrainedAnswers, 5000);
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
