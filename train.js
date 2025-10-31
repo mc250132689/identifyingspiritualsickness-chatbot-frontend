@@ -10,6 +10,15 @@ function formatAnswer(text) {
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
     .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
+    .replace(/\|(.+?)\|/gs, (match) => {
+      // Convert markdown-style table into HTML table
+      const rows = match.trim().split("\n").filter(r => r.trim());
+      const tableRows = rows.map(row => {
+        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
+        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      }).join("");
+      return `<table class="chat-table">${tableRows}</table>`;
+    })
     .replace(/\n/g, "<br>");
 }
 
@@ -17,7 +26,7 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const question = document.getElementById("question").value.trim();
-  let answer = document.getElementById("answer").value.trim();
+  const answer = document.getElementById("answer").value.trim();
 
   if (!question || !answer) {
     responseText.textContent = "Please fill both fields.";
@@ -67,6 +76,7 @@ form.addEventListener("submit", async (e) => {
     }
 
   } catch (err) {
+    console.error(err);
     responseText.textContent = "Error submitting training data.";
   }
 });
