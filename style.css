@@ -1,66 +1,71 @@
 body {
-  font-family: "Segoe UI", sans-serif;
-  background: #f5f5f5;
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f5f7;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  padding: 0;
 }
 
-.chat-container, .train-container {
+.container {
+  max-width: 600px;
+  margin: 40px auto;
   background: white;
-  padding: 20px 25px;
-  border-radius: 15px;
-  width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #3a3b3c;
 }
 
 .chat-box {
-  border: 1px solid #ccc;
-  height: 300px;
+  height: 400px;
   overflow-y: auto;
+  border: 1px solid #ddd;
   padding: 10px;
-  margin-bottom: 10px;
   border-radius: 10px;
+  margin-bottom: 15px;
   background: #fafafa;
 }
 
-.input-container {
+.user-msg {
+  text-align: right;
+  background: #d1f7c4;
+  padding: 10px;
+  margin: 8px;
+  border-radius: 10px;
+}
+
+.bot-msg {
+  text-align: left;
+  background: #e8e8e8;
+  padding: 10px;
+  margin: 8px;
+  border-radius: 10px;
+}
+
+.input-area {
   display: flex;
   gap: 10px;
 }
 
-input, textarea, select {
+input, textarea {
   width: 100%;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 10px;
   border: 1px solid #ccc;
 }
 
 button {
-  background-color: #008080;
-  color: white;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #006666;
-}
-
-.message {
-  margin: 8px 0;
-}
-
-.message b {
-  color: #008080;
-}
-
-#status, #train-status {
-  margin-top: 8px;
-  font-size: 0.9em;
-  color: #444;
+  background-color: #357ABD;
 }
