@@ -1,27 +1,50 @@
 <!DOCTYPE html>
 <html lang="ms">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🕋 Spiritual Sickness Chatbot</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body class="bg-gradient-to-br from-emerald-50 to-emerald-100 min-h-screen flex flex-col">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🕋 Chatbot Rawatan Islam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-emerald-50 flex flex-col h-screen">
+    <!-- Header -->
+    <header
+      class="bg-emerald-700 text-white text-center py-4 shadow-md text-xl font-semibold"
+    >
+      🤖 Chatbot Rawatan Islam
+    </header>
 
-  <header class="bg-emerald-600 text-white text-center py-4 shadow-lg">
-    <h1 class="text-2xl font-bold">🕋 Spiritual Sickness Chatbot</h1>
-  </header>
+    <!-- Chat Area -->
+    <main
+      id="chat-box"
+      class="flex-1 overflow-y-auto p-4 space-y-3 text-gray-800"
+    >
+      <div class="text-center text-gray-500 italic">
+        Assalamualaikum 🌙<br />
+        Saya pembantu maya rawatan Islam. Sila tanya tentang gangguan jin,
+        sihir, atau rawatan ruqyah berpandukan al-Quran dan Sunnah.
+      </div>
+    </main>
 
-  <main class="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
-    <div id="chat-box" class="flex-1 bg-white rounded-2xl p-4 overflow-y-auto shadow-inner space-y-4"></div>
-
-    <form id="chat-form" class="mt-4 flex gap-2">
-      <input id="user-input" type="text" placeholder="Tulis mesej anda di sini..." class="flex-1 border border-emerald-400 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none">
-      <button type="submit" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition">Hantar</button>
+    <!-- Input Form -->
+    <form
+      id="chat-form"
+      class="p-4 bg-white border-t border-emerald-200 flex gap-2"
+    >
+      <input
+        id="user-input"
+        type="text"
+        placeholder="Tulis soalan anda di sini..."
+        class="flex-1 border border-emerald-400 rounded-xl p-2 focus:outline-none focus:ring focus:ring-emerald-300"
+      />
+      <button
+        type="submit"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl"
+      >
+        Hantar
+      </button>
     </form>
-  </main>
 
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
