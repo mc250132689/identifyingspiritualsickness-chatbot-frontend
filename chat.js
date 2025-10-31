@@ -6,12 +6,12 @@ function appendMessage(sender, text) {
   const msg = document.createElement("div");
   msg.className = sender === "user" ? "user-msg" : "bot-msg";
 
-  // Replace line breaks with <br> and handle simple Markdown
+  // Format: line breaks, bold, italic, headings
   let formatted = text
     .replace(/\n/g, "<br>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>"); // optional: ## headings
+    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
 
   msg.innerHTML = formatted;
   chatBox.appendChild(msg);
