@@ -1,19 +1,20 @@
-// Backend API
+// Backend API URLs
 const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
 const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 
 // In-memory dictionary for trained Q&A
 let trainedAnswers = {};
 
-// Fetch latest trained answers from backend
+// Load trained answers from backend
 async function loadTrainedAnswers() {
   try {
     const res = await fetch(TRAIN_DATA_URL);
     const data = await res.json();
     if (data.training_data && Array.isArray(data.training_data)) {
-      trainedAnswers = {}; // reset
+      trainedAnswers = {};
       data.training_data.forEach(item => {
         trainedAnswers[item.question.toLowerCase()] = item.answer;
       });
@@ -26,7 +27,9 @@ async function loadTrainedAnswers() {
 
 // Initial load
 loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 30000); // refresh every 30s
+
+// Auto-refresh trained answers every 30 seconds
+setInterval(loadTrainedAnswers, 30000);
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
@@ -54,7 +57,7 @@ function appendMessage(userText, botText) {
   return botMsg;
 }
 
-// Send message function
+// Send message
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
@@ -105,27 +108,5 @@ input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
-  }
-});
-
-// Live suggestion while typing
-input.addEventListener("input", () => {
-  const currentText = input.value.trim().toLowerCase();
-  if (!currentText) return;
-
-  const matchKey = Object.keys(trainedAnswers).find(q => q.startsWith(currentText));
-  if (matchKey) {
-    const previewText = trainedAnswers[matchKey];
-    let previewElem = document.getElementById("live-preview");
-    if (!previewElem) {
-      previewElem = document.createElement("div");
-      previewElem.id = "live-preview";
-      previewElem.className = "bot-msg live-preview";
-      input.parentNode.appendChild(previewElem);
-    }
-    previewElem.innerHTML = `🤖 Preview: ${previewText.replace(/\n/g, "<br>")}`;
-  } else {
-    const previewElem = document.getElementById("live-preview");
-    if (previewElem) previewElem.remove();
   }
 });
