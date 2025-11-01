@@ -8,6 +8,18 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
+    #status-panel {
+      max-width: 900px;
+      margin: 0 auto 15px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
     #controls { max-width: 900px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     #training-container { max-width: 900px; margin: 20px auto; }
     .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; }
@@ -21,6 +33,12 @@
 </head>
 <body>
   <h1>📝 Training Data Viewer</h1>
+
+  <div id="status-panel">
+    <div><strong>Total Records:</strong> <span id="status-total">0</span></div>
+    <div><strong>Last Refresh:</strong> <span id="status-refresh">--</span></div>
+    <div><strong>Last Import:</strong> <span id="status-import">No imports yet</span></div>
+  </div>
 
   <div id="controls">
     <input type="text" id="search-input" placeholder="Search questions or answers...">
@@ -47,6 +65,11 @@
     const importBtn = document.getElementById("import-btn");
     const importFile = document.getElementById("import-file");
 
+    // Status elements
+    const statusTotal = document.getElementById("status-total");
+    const statusRefresh = document.getElementById("status-refresh");
+    const statusImport = document.getElementById("status-import");
+
     const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
     const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
     let trainingData = [];
@@ -58,6 +81,7 @@
         const data = await res.json();
         trainingData = data.training_data.reverse();
         displayData(trainingData);
+        updateStatus();
       } catch (err) {
         container.innerHTML = "Error loading data.";
       }
@@ -103,6 +127,11 @@
       displayData(filtered);
     }
 
+    function updateStatus() {
+      statusTotal.textContent = trainingData.length;
+      statusRefresh.textContent = new Date().toLocaleTimeString();
+    }
+
     searchInput.addEventListener("input", filterAndSearch);
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
@@ -116,7 +145,7 @@
       XLSX.writeFile(wb, "training_data.xlsx");
     });
 
-    // Import from Excel and merge to backend
+    // Import Excel and merge
     importBtn.addEventListener("click", () => importFile.click());
     importFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
@@ -130,38 +159,56 @@
         const json = XLSX.utils.sheet_to_json(sheet);
         if (!json.length) return alert("No data found in Excel!");
 
-        // Merge data
+        let added = 0, updated = 0, skipped = 0;
+
         for (let item of json) {
           if (!item.question || !item.answer) continue;
+
           const newQ = item.question.trim().toLowerCase();
           const newA = item.answer.trim();
 
           const existingIndex = trainingData.findIndex(td => td.question.trim().toLowerCase() === newQ);
+
           if (existingIndex >= 0) {
-            if (trainingData[existingIndex].answer.trim() !== newA) {
-              trainingData[existingIndex].answer = item.answer;
-              trainingData[existingIndex].lang = item.lang || trainingData[existingIndex].lang || "en";
+            const existing = trainingData[existingIndex];
+            if (existing.answer.trim() === newA && (existing.lang || "en") === (item.lang || "en")) {
+              skipped++;
+              continue;
             }
+            trainingData[existingIndex].answer = item.answer;
+            trainingData[existingIndex].lang = item.lang || existing.lang || "en";
+            updated++;
           } else {
             trainingData.unshift({ question: item.question, answer: item.answer, lang: item.lang || "en" });
+            added++;
           }
 
-          // Sync each to backend individually
           try {
             await fetch(TRAIN_API_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ question: item.question, answer: item.answer, lang: item.lang || "en" }),
+              body: JSON.stringify({
+                question: item.question,
+                answer: item.answer,
+                lang: item.lang || "en"
+              }),
             });
           } catch (err) {
             console.error("Failed to upload:", item, err);
           }
         }
+
         displayData(trainingData);
-        alert("Training data imported and merged successfully!");
+        updateStatus();
+        statusImport.textContent = `Added: ${added}, Updated: ${updated}, Skipped: ${skipped}`;
+        alert(`✅ Import complete!\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`);
       };
       reader.readAsArrayBuffer(file);
     });
+
+    // Auto-refresh every 5 seconds
+    loadTrainingData();
+    setInterval(loadTrainingData, 5000);
   </script>
 </body>
 </html>
