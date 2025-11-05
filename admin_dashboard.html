@@ -14,24 +14,22 @@
     .chart-container { margin-top: 30px; background: #fafafa; border-radius: 10px; padding: 20px; }
     #login-section { text-align: center; margin-top: 100px; }
     input, button { padding: 10px; margin: 5px; font-size: 16px; }
-    button { border: none; border-radius: 8px; cursor: pointer; }
+    button { background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #0056b3; }
 
+    /* Go to Train Bot button */
     #train-btn {
       display: block;
-      margin: 25px auto 10px;
+      margin: 20px auto 0;
+      padding: 10px 20px;
       background: #28a745;
       color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
     }
     #train-btn:hover { background: #218838; }
-
-    /* NEW: View Training Data button */
-    #view-data-btn {
-      display: block;
-      margin: 10px auto 0;
-      background: #17a2b8;
-      color: white;
-    }
-    #view-data-btn:hover { background: #10768b; }
   </style>
 </head>
 <body>
@@ -67,10 +65,9 @@
         <canvas id="langChart" height="120"></canvas>
       </div>
 
-      <!-- Buttons for navigation -->
+      <!-- New button to open Train Bot -->
       <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
-      <button id="view-data-btn" onclick="window.location.href='view_training.html'">📚 View Training Data</button>
-
+      <button id="train-btn" onclick="window.location.href='view_training.html'">🚀 Go to View training</button>
     </div>
   </div>
 
@@ -95,6 +92,7 @@
           return;
         }
 
+        // ✅ Authorized access
         loginSection.style.display = "none";
         dashboard.style.display = "block";
 
