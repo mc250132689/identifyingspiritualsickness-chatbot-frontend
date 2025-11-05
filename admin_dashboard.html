@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Spiritual Sickness Chatbot</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+    h1 { text-align: center; }
+    .admin-container { max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #007bff; color: white; padding: 20px; border-radius: 10px; text-align: center; }
+    .chart-container { margin-top: 30px; background: #fafafa; border-radius: 10px; padding: 20px; }
+    #login-section { text-align: center; margin-top: 100px; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+    button { background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Admin Dashboard</h1>
+
+  <div id="login-section">
+    <input type="password" id="admin-key" placeholder="Enter Admin Key">
+    <button id="login-btn">Access Dashboard</button>
+    <p id="login-status"></p>
+  </div>
+
+  <div id="dashboard" style="display:none">
+    <div class="admin-container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h2 id="total-records">0</h2>
+          <p>Total Training Records</p>
+        </div>
+        <div class="stat-card">
+          <h2 id="avg-q-len">0</h2>
+          <p>Avg. Question Length</p>
+        </div>
+        <div class="stat-card">
+          <h2 id="avg-a-len">0</h2>
+          <p>Avg. Answer Length</p>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h3>Language Distribution</h3>
+        <canvas id="langChart" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/admin-stats";
+    const loginBtn = document.getElementById("login-btn");
+    const loginSection = document.getElementById("login-section");
+    const dashboard = document.getElementById("dashboard");
+    const statusText = document.getElementById("login-status");
+
+    loginBtn.addEventListener("click", async () => {
+      const key = document.getElementById("admin-key").value.trim();
+      if (!key) return alert("Please enter admin key");
+
+      statusText.textContent = "Verifying...";
+
+      try {
+        const res = await fetch(`${API_URL}?key=${key}`);
+        const data = await res.json();
+        if (data.error) {
+          statusText.textContent = "❌ Unauthorized!";
+          return;
+        }
+
+        // Hide login, show dashboard
+        loginSection.style.display = "none";
+        dashboard.style.display = "block";
+
+        document.getElementById("total-records").textContent = data.total_records;
+        document.getElementById("avg-q-len").textContent = data.avg_question_length;
+        document.getElementById("avg-a-len").textContent = data.avg_answer_length;
+
+        const ctx = document.getElementById("langChart").getContext("2d");
+        new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: Object.keys(data.languages),
+            datasets: [{
+              data: Object.values(data.languages),
+              backgroundColor: ["#007bff","#ffc107","#28a745","#dc3545","#17a2b8"]
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+        });
+
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = "Error connecting to backend.";
+      }
+    });
+  </script>
+</body>
+</html>
