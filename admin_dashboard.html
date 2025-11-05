@@ -5,6 +5,7 @@
   <title>Admin Dashboard - Identifying Spiritual Sickness Chatbot</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
     h1 { text-align: center; margin-bottom: 20px; }
@@ -25,6 +26,9 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
     th { background: #007bff; color: white; }
+    .export-buttons { margin-top: 10px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .export-buttons button { background: #28a745; color: white; border-radius: 8px; padding: 10px 15px; cursor: pointer; border: none; }
+    .export-buttons button:hover { background: #218838; }
   </style>
 </head>
 <body>
@@ -70,6 +74,14 @@
       <button id="feedback-btn" onclick="window.location.href='feedback.html'">📝 Feedback & Suggestions</button>
     </div>
 
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+      <button onclick="downloadCSV(trainingData, 'training_data.csv')">💾 Download Training CSV</button>
+      <button onclick="downloadCSV(chatData, 'chat_logs.csv')">💾 Download Chat Logs CSV</button>
+      <button onclick="downloadPDF('training-table', 'training_data.pdf')">📄 Download Training PDF</button>
+      <button onclick="downloadPDF('chat-table', 'chat_logs.pdf')">📄 Download Chat Logs PDF</button>
+    </div>
+
     <!-- Charts -->
     <div class="dashboard-section">
       <h2>📊 Symptom Statistics</h2>
@@ -81,102 +93,30 @@
       <canvas id="langChart" height="200"></canvas>
     </div>
 
+    <!-- Example Tables (for PDF export) -->
+    <div class="dashboard-section">
+      <h2>Training Data Table</h2>
+      <table id="training-table">
+        <thead>
+          <tr><th>Question</th><th>Answer</th><th>Language</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="dashboard-section">
+      <h2>Chat Logs Table</h2>
+      <table id="chat-table">
+        <thead>
+          <tr><th>User</th><th>Message</th><th>Timestamp</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
-<script>
-  const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
-  const loginBtn = document.getElementById("login-btn");
-  const loginSection = document.getElementById("login-section");
-  const dashboard = document.getElementById("dashboard");
-  const statusText = document.getElementById("login-status");
-
-  let trainingData = [];
-  let chatData = [];
-
-  loginBtn.addEventListener("click", async () => {
-    const key = document.getElementById("admin-key").value.trim();
-    if (!key) return alert("Please enter admin key");
-    statusText.textContent = "⏳ Connecting to server...";
-
-    try {
-      const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
-      if (!res.ok) throw new Error("Backend unreachable");
-      const data = await res.json();
-      if (data.error) { statusText.textContent = "❌ Unauthorized Admin Key!"; return; }
-
-      loginSection.style.display = "none";
-      dashboard.style.display = "block";
-
-      // Populate stats
-      document.getElementById("total-records").textContent = data.total_records;
-      document.getElementById("avg-q-len").textContent = data.avg_question_length;
-      document.getElementById("avg-a-len").textContent = data.avg_answer_length;
-
-      // Load training & chat data
-      loadTrainingData();
-      loadChatData();
-
-    } catch (err) {
-      statusText.textContent = "⚠️ Error: Server offline or sleeping.";
-      console.log(err);
-    }
-  });
-
-  async function loadTrainingData() {
-    try {
-      const res = await fetch(`${BASE_URL}/get-training-data`);
-      const data = await res.json();
-      trainingData = data.training_data;
-      renderCharts();
-    } catch(err) { console.error(err); }
-  }
-
-  async function loadChatData() {
-    // This assumes you have a /get-chat-logs endpoint
-    try {
-      const res = await fetch(`${BASE_URL}/get-chat-logs?key=ADMIN_KEY`);
-      const data = await res.json();
-      chatData = data.logs || [];
-      document.getElementById("total-chats").textContent = chatData.length;
-    } catch(err) { console.log("Chat logs not available:", err); }
-  }
-
-  function renderCharts() {
-    const symptomCounts = {};
-    trainingData.forEach(d => {
-      const question = d.question.toLowerCase();
-      if (question.includes("nightmares")) symptomCounts["Nightmares"] = (symptomCounts["Nightmares"]||0)+1;
-      if (question.includes("jinn")) symptomCounts["Jinn"] = (symptomCounts["Jinn"]||0)+1;
-      if (question.includes("sihr")) symptomCounts["Sihr/Black Magic"] = (symptomCounts["Sihr/Black Magic"]||0)+1;
-      if (question.includes("ruqyah")) symptomCounts["Ruqyah"] = (symptomCounts["Ruqyah"]||0)+1;
-    });
-
-    new Chart(document.getElementById("symptomChart"), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(symptomCounts),
-        datasets: [{ label: 'Occurrences', data: Object.values(symptomCounts), backgroundColor: '#007bff' }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-
-    // Language chart
-    const langCounts = {};
-    trainingData.forEach(d => {
-      langCounts[d.language] = (langCounts[d.language]||0)+1;
-    });
-
-    new Chart(document.getElementById("langChart"), {
-      type: 'pie',
-      data: {
-        labels: Object.keys(langCounts),
-        datasets: [{ data: Object.values(langCounts), backgroundColor: ['#007bff','#28a745','#ffc107','#6f42c1','#17a2b8'] }]
-      },
-      options: { responsive: true }
-    });
-  }
-</script>
-
+<script src="admin_dashboard.js"></script>
 </body>
 </html>
