@@ -71,53 +71,58 @@
     </div>
   </div>
 
-  <script>
-    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/admin-stats";
-    const loginBtn = document.getElementById("login-btn");
-    const loginSection = document.getElementById("login-section");
-    const dashboard = document.getElementById("dashboard");
-    const statusText = document.getElementById("login-status");
+ <script>
+  const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/admin-stats";
+  const loginBtn = document.getElementById("login-btn");
+  const loginSection = document.getElementById("login-section");
+  const dashboard = document.getElementById("dashboard");
+  const statusText = document.getElementById("login-status");
 
-    loginBtn.addEventListener("click", async () => {
-      const key = document.getElementById("admin-key").value.trim();
-      if (!key) return alert("Please enter admin key");
+  loginBtn.addEventListener("click", async () => {
+    const key = document.getElementById("admin-key").value.trim();
+    if (!key) return alert("Please enter admin key");
 
-      statusText.textContent = "Verifying...";
+    statusText.textContent = "Verifying...";
 
-      try {
-        const res = await fetch(`${API_URL}?key=${key}`);
-        const data = await res.json();
-        if (data.error) {
-          statusText.textContent = "❌ Unauthorized!";
-          return;
-        }
+    try {
+      const res = await fetch(API_URL + "?key=" + encodeURIComponent(key), {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
 
-        // ✅ Authorized access
-        loginSection.style.display = "none";
-        dashboard.style.display = "block";
-
-        document.getElementById("total-records").textContent = data.total_records;
-        document.getElementById("avg-q-len").textContent = data.avg_question_length;
-        document.getElementById("avg-a-len").textContent = data.avg_answer_length;
-
-        const ctx = document.getElementById("langChart").getContext("2d");
-        new Chart(ctx, {
-          type: "pie",
-          data: {
-            labels: Object.keys(data.languages),
-            datasets: [{
-              data: Object.values(data.languages),
-              backgroundColor: ["#007bff","#ffc107","#28a745","#dc3545","#17a2b8"]
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { position: "bottom" } } }
-        });
-
-      } catch (err) {
-        console.error(err);
-        statusText.textContent = "Error connecting to backend.";
+      const data = await res.json();
+      if (data.error) {
+        statusText.textContent = "❌ Unauthorized!";
+        return;
       }
-    });
-  </script>
+
+      // ✅ Authorized access
+      loginSection.style.display = "none";
+      dashboard.style.display = "block";
+
+      document.getElementById("total-records").textContent = data.total_records;
+      document.getElementById("avg-q-len").textContent = data.avg_question_length;
+      document.getElementById("avg-a-len").textContent = data.avg_answer_length;
+
+      const ctx = document.getElementById("langChart").getContext("2d");
+      new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: Object.keys(data.languages),
+          datasets: [{
+            data: Object.values(data.languages),
+            backgroundColor: ["#007bff","#ffc107","#28a745","#dc3545","#17a2b8"]
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+      });
+
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = "⚠️ Error connecting to backend. Check your API URL.";
+    }
+  });
+</script>
+
 </body>
 </html>
