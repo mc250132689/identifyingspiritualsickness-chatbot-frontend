@@ -72,7 +72,8 @@
   </div>
 
  <script>
-  const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/admin-stats";
+  const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
+
   const loginBtn = document.getElementById("login-btn");
   const loginSection = document.getElementById("login-section");
   const dashboard = document.getElementById("dashboard");
@@ -82,21 +83,23 @@
     const key = document.getElementById("admin-key").value.trim();
     if (!key) return alert("Please enter admin key");
 
-    statusText.textContent = "Verifying...";
+    statusText.textContent = "⏳ Connecting to server... (may take ~10 sec if server is sleeping)";
 
     try {
-      const res = await fetch(API_URL + "?key=" + encodeURIComponent(key), {
+      const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`, {
         method: "GET",
         headers: { "Accept": "application/json" }
       });
 
+      if (!res.ok) throw new Error("Backend unreachable");
       const data = await res.json();
+
       if (data.error) {
-        statusText.textContent = "❌ Unauthorized!";
+        statusText.textContent = "❌ Unauthorized Admin Key!";
         return;
       }
 
-      // ✅ Authorized access
+      // ✅ Show dashboard
       loginSection.style.display = "none";
       dashboard.style.display = "block";
 
@@ -118,11 +121,10 @@
       });
 
     } catch (err) {
-      console.error(err);
-      statusText.textContent = "⚠️ Error connecting to backend. Check your API URL.";
+      statusText.textContent = "⚠️ Error: Server is sleeping or offline. Try again in 10 seconds.";
+      console.log(err);
     }
   });
 </script>
-
 </body>
 </html>
