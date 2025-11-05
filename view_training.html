@@ -5,83 +5,48 @@
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; }
-    #status-panel {
-      max-width: 900px;
-      margin: 0 auto 15px;
-      background: #fff;
-      border-radius: 10px;
-      padding: 10px 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      font-size: 14px;
-    }
-    #controls { max-width: 900px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-    #training-container { max-width: 900px; margin: 20px auto; }
-    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; }
-    .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; white-space: pre-wrap; }
-    .train-user-msg { align-self: flex-end; background-color: #d1e7ff; }
-    .train-bot-msg { align-self: flex-start; background-color: #e2e2e2; }
-    .train-lang { font-size: 12px; color: #555; margin-bottom: 3px; }
-    button, select, input { padding: 8px 12px; font-size: 14px; }
-    #search-input { flex-grow: 1; min-width: 200px; }
-  </style>
 </head>
 <body>
-  <h1>📝 Training Data Viewer</h1>
+  <div class="container">
+    <h1>📝 Training Data Viewer</h1>
 
-  <div id="status-panel">
-    <div><strong>Total Records:</strong> <span id="status-total">0</span></div>
-    <div><strong>Last Refresh:</strong> <span id="status-refresh">--</span></div>
-    <div><strong>Last Import:</strong> <span id="status-import">No imports yet</span></div>
+    <div id="controls">
+      <input type="text" id="search-input" placeholder="Search questions or answers...">
+      <select id="lang-filter">
+        <option value="">All Languages</option>
+        <option value="en">English (EN)</option>
+        <option value="ms">Malay (MS)</option>
+        <option value="ar">Arabic (AR)</option>
+      </select>
+      <button id="refresh-btn">Refresh Data</button>
+      <button id="export-btn">Export Excel</button>
+      <button id="import-btn">Import Excel</button>
+      <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
+    </div>
+
+    <div id="training-container"></div>
   </div>
-
-  <div id="controls">
-    <input type="text" id="search-input" placeholder="Search questions or answers...">
-    <select id="lang-filter">
-      <option value="">All Languages</option>
-      <option value="en">English (EN)</option>
-      <option value="ms">Malay (MS)</option>
-      <option value="ar">Arabic (AR)</option>
-    </select>
-    <button id="refresh-btn">Refresh Data</button>
-    <button id="export-btn">Export Excel</button>
-    <button id="import-btn">Import Excel</button>
-    <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
-  </div>
-
-  <div id="training-container"></div>
 
   <script>
+    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+
     const container = document.getElementById("training-container");
-    const refreshBtn = document.getElementById("refresh-btn");
     const searchInput = document.getElementById("search-input");
     const langFilter = document.getElementById("lang-filter");
+    const refreshBtn = document.getElementById("refresh-btn");
     const exportBtn = document.getElementById("export-btn");
     const importBtn = document.getElementById("import-btn");
     const importFile = document.getElementById("import-file");
 
-    // Status elements
-    const statusTotal = document.getElementById("status-total");
-    const statusRefresh = document.getElementById("status-refresh");
-    const statusImport = document.getElementById("status-import");
-
-    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
     let trainingData = [];
 
-    // Load training data
     async function loadTrainingData() {
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
         trainingData = data.training_data.reverse();
         displayData(trainingData);
-        updateStatus();
       } catch (err) {
         container.innerHTML = "Error loading data.";
       }
@@ -89,29 +54,27 @@
 
     function displayData(data) {
       container.innerHTML = "";
-      if (!data.length) {
-        container.innerHTML = "<p>No training data found.</p>";
-        return;
-      }
+      if (!data.length) return container.innerHTML = "<p>No training data found.</p>";
+
       data.forEach(item => {
         const pair = document.createElement("div");
         pair.className = "train-msg-pair";
 
         const langLabel = document.createElement("div");
         langLabel.className = "train-lang";
-        langLabel.textContent = `Language: ${item.lang ? item.lang.toUpperCase() : "N/A"}`;
+        langLabel.textContent = `Language: ${item.lang || "N/A"}`;
         pair.appendChild(langLabel);
 
         const userMsg = document.createElement("div");
         userMsg.className = "train-user-msg";
         userMsg.textContent = item.question;
+        pair.appendChild(userMsg);
 
         const botMsg = document.createElement("div");
         botMsg.className = "train-bot-msg";
         botMsg.textContent = item.answer;
-
-        pair.appendChild(userMsg);
         pair.appendChild(botMsg);
+
         container.appendChild(pair);
       });
     }
@@ -127,16 +90,11 @@
       displayData(filtered);
     }
 
-    function updateStatus() {
-      statusTotal.textContent = trainingData.length;
-      statusRefresh.textContent = new Date().toLocaleTimeString();
-    }
-
     searchInput.addEventListener("input", filterAndSearch);
     langFilter.addEventListener("change", filterAndSearch);
     refreshBtn.addEventListener("click", loadTrainingData);
 
-    // Export to Excel
+    // Export Excel
     exportBtn.addEventListener("click", () => {
       if (!trainingData.length) return alert("No data to export!");
       const ws = XLSX.utils.json_to_sheet(trainingData);
@@ -145,7 +103,7 @@
       XLSX.writeFile(wb, "training_data.xlsx");
     });
 
-    // Import Excel and merge
+    // Import Excel
     importBtn.addEventListener("click", () => importFile.click());
     importFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
@@ -157,56 +115,23 @@
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(sheet);
-        if (!json.length) return alert("No data found in Excel!");
-
-        let added = 0, updated = 0, skipped = 0;
 
         for (let item of json) {
           if (!item.question || !item.answer) continue;
-
-          const newQ = item.question.trim().toLowerCase();
-          const newA = item.answer.trim();
-
-          const existingIndex = trainingData.findIndex(td => td.question.trim().toLowerCase() === newQ);
-
-          if (existingIndex >= 0) {
-            const existing = trainingData[existingIndex];
-            if (existing.answer.trim() === newA && (existing.lang || "en") === (item.lang || "en")) {
-              skipped++;
-              continue;
-            }
-            trainingData[existingIndex].answer = item.answer;
-            trainingData[existingIndex].lang = item.lang || existing.lang || "en";
-            updated++;
-          } else {
-            trainingData.unshift({ question: item.question, answer: item.answer, lang: item.lang || "en" });
-            added++;
-          }
-
           try {
             await fetch(TRAIN_API_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question: item.question,
-                answer: item.answer,
-                lang: item.lang || "en"
-              }),
+              body: JSON.stringify({ question: item.question, answer: item.answer, lang: item.lang || "en" })
             });
-          } catch (err) {
-            console.error("Failed to upload:", item, err);
-          }
+          } catch (err) { console.error("Failed to upload:", item, err); }
         }
-
-        displayData(trainingData);
-        updateStatus();
-        statusImport.textContent = `Added: ${added}, Updated: ${updated}, Skipped: ${skipped}`;
-        alert(`✅ Import complete!\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`);
+        await loadTrainingData();
+        alert("✅ Import complete!");
       };
       reader.readAsArrayBuffer(file);
     });
 
-    // Auto-refresh every 5 seconds
     loadTrainingData();
     setInterval(loadTrainingData, 5000);
   </script>
