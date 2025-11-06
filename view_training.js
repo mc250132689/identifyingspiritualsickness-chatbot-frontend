@@ -14,12 +14,22 @@ function displayData(data) {
   data.forEach(item => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${item.question}</td>
-      <td>${item.answer}</td>
+      <td>${escapeHtml(item.question)}</td>
+      <td>${escapeHtml(item.answer)}</td>
       <td>${item.lang}</td>
-      <td><button class="delete-btn" onclick="deleteEntry('${item.question}')">Delete</button></td>
+      <td><button class="delete-btn" onclick="deleteEntry('${encodeURIComponent(item.question)}')">Delete</button></td>
     `;
     table.appendChild(tr);
+  });
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.replace(/[&<>"'`=\/]/g, s => {
+    return ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+      "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
+    })[s];
   });
 }
 
@@ -30,7 +40,8 @@ document.getElementById("searchInput").addEventListener("keyup", function () {
   });
 });
 
-async function deleteEntry(question) {
+async function deleteEntry(encodedQuestion) {
+  const question = decodeURIComponent(encodedQuestion);
   if (!confirm("Delete this entry?")) return;
   await fetch(`${API}/delete-entry?question=${encodeURIComponent(question)}&key=${ADMIN_KEY}`, {
     method: "DELETE",
@@ -45,7 +56,7 @@ function downloadCSV() {
     rows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
   });
 
-  let csvContent = rows.map(e => e.join(",")).join("\n");
+  let csvContent = rows.map(e => e.map(v => `"${v.replace(/"/g,'""')}"`).join(",")).join("\n");
   let blob = new Blob([csvContent], { type: "text/csv" });
   let link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
