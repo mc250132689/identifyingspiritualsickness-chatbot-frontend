@@ -2,20 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>View Training - Identifying Spiritual Sickness Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Training - Spiritual Sickness Chatbot</title>
     <link rel="stylesheet" href="/static/css/view_training.css">
 </head>
 <body>
     <header>
-        <h1>View Training Data</h1>
-        <a href="/">Back to Dashboard</a>
+        <h1>🕌 View Training Data</h1>
     </header>
     <main>
-        <ul>
-            {% for item in train_data %}
-            <li>{{ item.id }} | {{ item.question }} → {{ item.answer }} | Lang: {{ item.lang }} | {{ item.created_at }}</li>
-            {% endfor %}
-        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Question</th>
+                    <th>Answer</th>
+                    <th>Language</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody id="training-table-body"></tbody>
+        </table>
     </main>
     <script src="/static/js/view_training.js"></script>
 </body>
