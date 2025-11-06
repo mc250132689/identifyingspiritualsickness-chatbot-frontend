@@ -1,41 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Training Data Viewer</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
-    h2 { margin-bottom: 10px; }
-    input { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { padding: 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
-    th { background: #222; color: white; }
-    td { white-space: pre-wrap; }
-    button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; }
-    .delete-btn { background: crimson; color: white; }
-    .download-btn { background: seagreen; color: white; margin-bottom: 15px; }
-  </style>
+  <link rel="stylesheet" href="view_training.css">
 </head>
 <body>
 
-<h2>📘 Training Data Records</h2>
+<div class="container">
+  <h2>📘 Training Data Records</h2>
 
-<input type="text" id="searchInput" placeholder="Search questions or answers...">
+  <input type="text" id="searchInput" placeholder="Search questions or answers...">
 
-<button class="download-btn" onclick="downloadCSV()">Download CSV</button>
+  <div class="top-buttons">
+    <button class="download-btn" onclick="downloadCSV()">Download CSV</button>
+  </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Question</th>
-      <th>Answer</th>
-      <th>Lang</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody id="dataTable"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Question</th>
+        <th>Answer</th>
+        <th>Lang</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+  </table>
+
+  <div class="pagination">
+    <button onclick="prevPage()">Prev</button>
+    <span id="pageInfo"></span>
+    <button onclick="nextPage()">Next</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Entry</h3>
+
+    <label>Question:</label>
+    <textarea id="editQuestion"></textarea>
+
+    <label>Answer:</label>
+    <textarea id="editAnswer"></textarea>
+
+    <label>Language:</label>
+    <input type="text" id="editLang">
+
+    <div class="modal-buttons">
+      <button onclick="saveEdit()" class="save-btn">Save</button>
+      <button onclick="closeModal()" class="close-btn">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script src="view_training.js"></script>
-
 </body>
 </html>
