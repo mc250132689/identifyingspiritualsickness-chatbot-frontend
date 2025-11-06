@@ -1,60 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Training Data Viewer</title>
   <link rel="stylesheet" href="view_training.css">
 </head>
 <body>
 
-<div class="container">
-  <h2>📘 Training Data Records</h2>
+<button onclick="location.href='admin_dashboard.html'" class="back-btn">← Back to Dashboard</button>
 
-  <input type="text" id="searchInput" placeholder="Search questions or answers...">
+<h2>📘 Training Data Records</h2>
 
-  <div class="top-buttons">
-    <button class="download-btn" onclick="downloadCSV()">Download CSV</button>
-  </div>
+<input type="text" id="searchInput" placeholder="Search questions or answers...">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Question</th>
-        <th>Answer</th>
-        <th>Lang</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="dataTable"></tbody>
-  </table>
+<button class="download-btn" onclick="downloadCSV()">Download CSV</button>
 
-  <div class="pagination">
-    <button onclick="prevPage()">Prev</button>
-    <span id="pageInfo"></span>
-    <button onclick="nextPage()">Next</button>
-  </div>
-</div>
-
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal">
-  <div class="modal-content">
-    <h3>Edit Entry</h3>
-
-    <label>Question:</label>
-    <textarea id="editQuestion"></textarea>
-
-    <label>Answer:</label>
-    <textarea id="editAnswer"></textarea>
-
-    <label>Language:</label>
-    <input type="text" id="editLang">
-
-    <div class="modal-buttons">
-      <button onclick="saveEdit()" class="save-btn">Save</button>
-      <button onclick="closeModal()" class="close-btn">Cancel</button>
-    </div>
-  </div>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>Question</th>
+      <th>Answer</th>
+      <th>Lang</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="dataTable"></tbody>
+</table>
 
 <script src="view_training.js"></script>
 </body>
