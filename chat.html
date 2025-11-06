@@ -1,25 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Identifying Spiritual Sickness Chatbot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="chat.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spiritual Sickness Chatbot</title>
+<link rel="stylesheet" href="chat.css" />
 </head>
 <body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">🕌 Identifying Spiritual Sickness Chatbot</div>
+      <button id="feedback-open" class="icon-btn">✉️</button>
+    </header>
 
-<div class="chat-wrapper">
-  <div class="chat-header">
-    🕌 Identifying Spiritual Sickness Chatbot
+    <main class="chat-area" id="chat-box" role="log" aria-live="polite"></main>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <input id="user-input" type="text" placeholder="Describe your symptom, e.g., 'I have recurring nightmares'..." />
+      <button id="send-btn" type="submit">Send</button>
+    </form>
   </div>
 
-  <div id="chat-box" class="chat-box"></div>
-
-  <div class="chat-input-area">
-    <input id="user-input" type="text" placeholder="Type your message...">
-    <button id="send-btn">Send</button>
+  <!-- Feedback modal (hidden by default) -->
+  <div id="feedback-modal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <button id="feedback-close" class="modal-close">&times;</button>
+      <h3>Submit Feedback</h3>
+      <textarea id="fb-text" placeholder="Share your feedback..."></textarea>
+      <button id="fb-send">Submit</button>
+    </div>
   </div>
-</div>
 
 <script src="chat.js"></script>
 </body>
