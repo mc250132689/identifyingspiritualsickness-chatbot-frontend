@@ -1,95 +1,24 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f4f4f9;
-  margin: 0;
-  padding: 0;
+  background: #f9f9f9;
+  margin: 0; padding: 0;
 }
-
-/* Login */
-.center-box {
-  max-width: 350px;
-  margin: 120px auto;
-  text-align: center;
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.center-box input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #aaa;
-}
-
-.center-box button {
-  margin-top: 12px;
-  width: 100%;
-  padding: 12px;
-  background: #007bff;
-  color: white;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-}
-
-/* Dashboard */
-.top-bar {
-  background: #007bff;
-  padding: 15px;
-  color: white;
-  text-align: center;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 15px;
-}
-
-.stat-card {
-  background: white;
-  padding: 18px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.btn-row {
+.container { max-width: 600px; margin: auto; padding: 20px; }
+h1 { text-align: center; }
+.cards {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 15px;
   justify-content: center;
 }
-
-.btn-row button {
-  padding: 12px 18px;
-  background: #28a745;
+.card {
+  background: #4CAF50;
   color: white;
+  padding: 20px;
+  flex: 1 0 40%;
+  text-align: center;
+  text-decoration: none;
   border-radius: 8px;
-  border: none;
-  cursor: pointer;
+  transition: 0.3s;
 }
-
-.btn-row button:nth-child(2) { background: #17a2b8; }
-.btn-row button:nth-child(3) { background: #ffc107; color: black; }
-.btn-row button:nth-child(4) { background: #6f42c1; }
-
-.chart-section {
-  background: white;
-  margin: 20px;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-}
-
-/* Mobile Tweaks */
-@media (max-width: 600px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .btn-row button { width: 100%; }
-  .chart-section { margin: 10px; }
-}
+.card:hover { background: #45a049; }
