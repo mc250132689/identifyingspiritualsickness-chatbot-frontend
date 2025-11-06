@@ -1,8 +1,13 @@
 body { font-family: Arial; padding: 20px; background: #f8f8f8; margin: 0; }
 
 .back-btn {
-  background: #444; color: white; padding: 10px 15px;
-  border-radius: 6px; border: none; cursor: pointer; margin-bottom: 15px;
+  background: #28a745;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 15px;
 }
 
 input {
@@ -17,7 +22,6 @@ input {
 
 small { color: gray; display: block; margin-top: 8px; }
 
-/* Mobile */
 @media (max-width: 600px) {
   .log-entry { font-size: 14px; padding: 12px; }
 }
