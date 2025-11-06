@@ -1,139 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Training Data Viewer</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+    h2 { margin-bottom: 10px; }
+    input { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; }
+    th { background: #222; color: white; }
+    button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; }
+    .delete-btn { background: crimson; color: white; }
+    .download-btn { background: seagreen; color: white; margin-bottom: 15px; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📝 Training Data Viewer</h1>
 
-    <div id="controls">
-      <input type="text" id="search-input" placeholder="Search questions or answers...">
-      <select id="lang-filter">
-        <option value="">All Languages</option>
-        <option value="en">English (EN)</option>
-        <option value="ms">Malay (MS)</option>
-        <option value="ar">Arabic (AR)</option>
-      </select>
-      <button id="refresh-btn">Refresh Data</button>
-      <button id="export-btn">Export Excel</button>
-      <button id="import-btn">Import Excel</button>
-      <input type="file" id="import-file" style="display:none" accept=".xlsx,.xls">
-    </div>
+<h2>📘 Training Data Records</h2>
 
-    <div id="training-container"></div>
-  </div>
+<input type="text" id="searchInput" placeholder="Search questions or answers...">
 
-  <script>
-    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+<button class="download-btn" onclick="downloadCSV()">Download CSV</button>
 
-    const container = document.getElementById("training-container");
-    const searchInput = document.getElementById("search-input");
-    const langFilter = document.getElementById("lang-filter");
-    const refreshBtn = document.getElementById("refresh-btn");
-    const exportBtn = document.getElementById("export-btn");
-    const importBtn = document.getElementById("import-btn");
-    const importFile = document.getElementById("import-file");
+<table>
+  <thead>
+    <tr>
+      <th>Question</th>
+      <th>Answer</th>
+      <th>Lang</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="dataTable"></tbody>
+</table>
 
-    let trainingData = [];
+<script>
+const ADMIN_KEY = "mc250132689"; // your admin key
+const API = "https://identifyingspiritualsickness-chatbot.onrender.com";
 
-    async function loadTrainingData() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        trainingData = data.training_data.reverse();
-        displayData(trainingData);
-      } catch (err) {
-        container.innerHTML = "Error loading data.";
-      }
-    }
+async function loadData() {
+  const res = await fetch(`${API}/get-training-data`);
+  const data = await res.json();
+  displayData(data.training_data);
+}
 
-    function displayData(data) {
-      container.innerHTML = "";
-      if (!data.length) return container.innerHTML = "<p>No training data found.</p>";
+function displayData(data) {
+  const table = document.getElementById("dataTable");
+  table.innerHTML = "";
 
-      data.forEach(item => {
-        const pair = document.createElement("div");
-        pair.className = "train-msg-pair";
+  data.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.question}</td>
+      <td>${item.answer}</td>
+      <td>${item.lang}</td>
+      <td><button class="delete-btn" onclick="deleteEntry('${item.question}')">Delete</button></td>
+    `;
+    table.appendChild(tr);
+  });
+}
 
-        const langLabel = document.createElement("div");
-        langLabel.className = "train-lang";
-        langLabel.textContent = `Language: ${item.lang || "N/A"}`;
-        pair.appendChild(langLabel);
+// Live Search Filter
+document.getElementById("searchInput").addEventListener("keyup", function () {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll("#dataTable tr");
 
-        const userMsg = document.createElement("div");
-        userMsg.className = "train-user-msg";
-        userMsg.textContent = item.question;
-        pair.appendChild(userMsg);
+  rows.forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+  });
+});
 
-        const botMsg = document.createElement("div");
-        botMsg.className = "train-bot-msg";
-        botMsg.textContent = item.answer;
-        pair.appendChild(botMsg);
+// Delete Entry
+async function deleteEntry(question) {
+  if (!confirm("Delete this entry?")) return;
 
-        container.appendChild(pair);
-      });
-    }
+  await fetch(`${API}/delete-entry?question=${encodeURIComponent(question)}&key=${ADMIN_KEY}`, {
+    method: "DELETE",
+  });
 
-    function filterAndSearch() {
-      let filtered = trainingData;
-      const query = searchInput.value.toLowerCase();
-      const lang = langFilter.value;
-      if (lang) filtered = filtered.filter(item => item.lang === lang);
-      if (query) filtered = filtered.filter(item =>
-        item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
-      );
-      displayData(filtered);
-    }
+  loadData();
+}
 
-    searchInput.addEventListener("input", filterAndSearch);
-    langFilter.addEventListener("change", filterAndSearch);
-    refreshBtn.addEventListener("click", loadTrainingData);
+// Download CSV
+function downloadCSV() {
+  let rows = [["Question", "Answer", "Language"]];
+  document.querySelectorAll("#dataTable tr").forEach(tr => {
+    let cols = tr.querySelectorAll("td");
+    rows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+  });
 
-    // Export Excel
-    exportBtn.addEventListener("click", () => {
-      if (!trainingData.length) return alert("No data to export!");
-      const ws = XLSX.utils.json_to_sheet(trainingData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
-      XLSX.writeFile(wb, "training_data.xlsx");
-    });
+  let csvContent = rows.map(e => e.join(",")).join("\n");
+  let blob = new Blob([csvContent], { type: "text/csv" });
 
-    // Import Excel
-    importBtn.addEventListener("click", () => importFile.click());
-    importFile.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
+  let link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "training_data.csv";
+  link.click();
+}
 
-        for (let item of json) {
-          if (!item.question || !item.answer) continue;
-          try {
-            await fetch(TRAIN_API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ question: item.question, answer: item.answer, lang: item.lang || "en" })
-            });
-          } catch (err) { console.error("Failed to upload:", item, err); }
-        }
-        await loadTrainingData();
-        alert("✅ Import complete!");
-      };
-      reader.readAsArrayBuffer(file);
-    });
+loadData();
+</script>
 
-    loadTrainingData();
-    setInterval(loadTrainingData, 5000);
-  </script>
 </body>
 </html>
