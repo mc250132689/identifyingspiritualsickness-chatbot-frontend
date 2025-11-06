@@ -2,119 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard - Identifying Spiritual Sickness Chatbot</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Admin Dashboard - Spiritual Chatbot</title>
+  <link rel="stylesheet" href="admin_dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
-    h1 { text-align: center; margin-bottom: 20px; }
-    .admin-container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #007bff; color: white; padding: 20px; border-radius: 10px; text-align: center; font-size: 18px; }
-    .btn-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-    .btn-row button { padding: 12px 20px; font-size: 16px; color: white; border-radius: 8px; cursor: pointer; }
-    #train-btn { background: #28a745; } #train-btn:hover { background: #218838; }
-    #view-train-btn { background: #17a2b8; } #view-train-btn:hover { background: #117a8b; }
-    #chat-view-btn { background: #ffc107; } #chat-view-btn:hover { background: #e0a800; }
-    #feedback-btn { background: #6f42c1; } #feedback-btn:hover { background: #5a3490; }
-    #login-section { text-align: center; margin-top: 100px; }
-    input, button { padding: 10px; margin: 5px; font-size: 16px; }
-    button { border: none; border-radius: 8px; cursor: pointer; }
-    .dashboard-section { margin-top: 30px; }
-    canvas { background: #fafafa; border-radius: 10px; padding: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-    th { background: #007bff; color: white; }
-    .export-buttons { margin-top: 10px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .export-buttons button { background: #28a745; color: white; border-radius: 8px; padding: 10px 15px; cursor: pointer; border: none; }
-    .export-buttons button:hover { background: #218838; }
-  </style>
 </head>
 <body>
 
-<h1>🔐 Admin Dashboard - Spiritual Chatbot</h1>
-
-<!-- Login Section -->
-<div id="login-section">
+<div id="login-section" class="center-box">
+  <h2>🔐 Admin Login</h2>
   <input type="password" id="admin-key" placeholder="Enter Admin Key">
   <button id="login-btn">Access Dashboard</button>
   <p id="login-status"></p>
 </div>
 
-<!-- Dashboard Section -->
 <div id="dashboard" style="display:none">
-  <div class="admin-container">
-    
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h2 id="total-records">0</h2>
-        <p>Total Training Records</p>
-      </div>
-      <div class="stat-card">
-        <h2 id="total-chats">0</h2>
-        <p>Total User Messages</p>
-      </div>
-      <div class="stat-card">
-        <h2 id="avg-q-len">0</h2>
-        <p>Avg. Question Length</p>
-      </div>
-      <div class="stat-card">
-        <h2 id="avg-a-len">0</h2>
-        <p>Avg. Answer Length</p>
-      </div>
-    </div>
+  <header class="top-bar">
+    <h1>📊 Admin Dashboard</h1>
+  </header>
 
-    <!-- Buttons -->
-    <div class="btn-row">
-      <button id="train-btn" onclick="window.location.href='train.html'">🚀 Train Chatbot</button>
-      <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
-      <button id="chat-view-btn" onclick="window.location.href='chat_logs.html'">💬 View Chat History</button>
-      <button id="feedback-btn" onclick="window.location.href='feedback.html'">📝 Feedback & Suggestions</button>
+  <section class="stats-grid">
+    <div class="stat-card">
+      <h2 id="total-records">0</h2>
+      <p>Total Training Records</p>
     </div>
-
-    <!-- Export Buttons -->
-    <div class="export-buttons">
-      <button onclick="downloadCSV(trainingData, 'training_data.csv')">💾 Download Training CSV</button>
-      <button onclick="downloadCSV(chatData, 'chat_logs.csv')">💾 Download Chat Logs CSV</button>
-      <button onclick="downloadPDF('training-table', 'training_data.pdf')">📄 Download Training PDF</button>
-      <button onclick="downloadPDF('chat-table', 'chat_logs.pdf')">📄 Download Chat Logs PDF</button>
+    <div class="stat-card">
+      <h2 id="total-chats">0</h2>
+      <p>Total User Messages</p>
     </div>
-
-    <!-- Charts -->
-    <div class="dashboard-section">
-      <h2>📊 Symptom Statistics</h2>
-      <canvas id="symptomChart" height="200"></canvas>
+    <div class="stat-card">
+      <h2 id="avg-q-len">0</h2>
+      <p>Avg. Question Length</p>
     </div>
-
-    <div class="dashboard-section">
-      <h2>🌐 Language Usage</h2>
-      <canvas id="langChart" height="200"></canvas>
+    <div class="stat-card">
+      <h2 id="avg-a-len">0</h2>
+      <p>Avg. Answer Length</p>
     </div>
+  </section>
 
-    <!-- Example Tables (for PDF export) -->
-    <div class="dashboard-section">
-      <h2>Training Data Table</h2>
-      <table id="training-table">
-        <thead>
-          <tr><th>Question</th><th>Answer</th><th>Language</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <section class="btn-row">
+    <button onclick="window.location.href='train.html'">🚀 Train Chatbot</button>
+    <button onclick="window.location.href='view_training.html'">📂 View Training Data</button>
+    <button onclick="window.location.href='chat_logs.html'">💬 View Chat History</button>
+    <button onclick="window.location.href='feedback.html'">📝 Feedback</button>
+  </section>
 
-    <div class="dashboard-section">
-      <h2>Chat Logs Table</h2>
-      <table id="chat-table">
-        <thead>
-          <tr><th>User</th><th>Message</th><th>Timestamp</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <section class="chart-section">
+    <h2>📊 Symptom Statistics</h2>
+    <canvas id="symptomChart"></canvas>
+  </section>
 
-  </div>
+  <section class="chart-section">
+    <h2>🌐 Language Usage</h2>
+    <canvas id="langChart"></canvas>
+  </section>
+
 </div>
 
 <script src="admin_dashboard.js"></script>
