@@ -1,18 +1,33 @@
-const chatBox = document.getElementById("chat-box");
-const messageInput = document.getElementById("message");
-const sendBtn = document.getElementById("send-btn");
+const chatWindow = document.getElementById("chat-window");
+const chatForm = document.getElementById("chat-form");
+const chatInput = document.getElementById("chat-input");
 
-sendBtn.addEventListener("click", async () => {
-    const msg = messageInput.value.trim();
-    if (!msg) return;
-    chatBox.innerHTML += `<div><b>You:</b> ${msg}</div>`;
-    messageInput.value = "";
-    const res = await fetch("/chat", {
+async function addMessage(userMsg, botMsg) {
+    const userDiv = document.createElement("div");
+    userDiv.className = "chat-message user-msg";
+    userDiv.textContent = userMsg;
+    chatWindow.appendChild(userDiv);
+
+    const botDiv = document.createElement("div");
+    botDiv.className = "chat-message bot-msg";
+    botDiv.textContent = botMsg;
+    chatWindow.appendChild(botDiv);
+
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    chatInput.value = "";
+    const response = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
+        body: JSON.stringify({ message })
     });
-    const data = await res.json();
-    chatBox.innerHTML += `<div><b>Bot:</b> ${data.response}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const data = await response.json();
+    addMessage(message, data.response);
 });
