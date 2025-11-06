@@ -1,0 +1,14 @@
+body{font-family:Arial,sans-serif;background:#f7f7f7;margin:0;padding:0;color:#333;}
+h1{margin:0 0 15px 0;font-weight:600;text-align:center;}
+.container{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+#chat-box{max-height:400px;overflow-y:auto;border:1px solid #ddd;padding:10px;border-radius:10px;background:#fafafa;}
+.input-container{display:flex;margin-top:10px;}
+#user-input{flex:1;padding:10px;font-size:16px;border-radius:8px 0 0 8px;border:1px solid #ccc;}
+.input-container button{padding:10px 15px;font-size:16px;border:1px solid #ccc;border-left:0;border-radius:0 8px 8px 0;background:#007bff;color:white;}
+.input-container button:hover{background:#0056b3;}
+.message-pair{display:flex;flex-direction:column;margin-bottom:15px;}
+.user-msg{align-self:flex-end;text-align:right;background:#cce5ff;padding:10px 15px;border-radius:15px;max-width:80%;word-wrap:break-word;line-height:1.5;}
+.bot-msg{align-self:flex-start;text-align:left;background:#e2e3e5;padding:10px 15px;border-radius:15px;max-width:80%;word-wrap:break-word;line-height:1.6;}
+.back-btn{margin-top:10px;padding:10px 15px;background:#28a745;color:white;border:none;border-radius:8px;width:100%;font-size:16px;cursor:pointer;}
+.back-btn:hover{background:#218838;}
+@media(max-width:500px){.user-msg,.bot-msg{max-width:95%;}}
