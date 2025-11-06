@@ -1,63 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard - Spiritual Chatbot</title>
-  <link rel="stylesheet" href="admin_dashboard.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identifying Spiritual Sickness Chatbot - Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
-
-<div id="login-section" class="center-box">
-  <h2>🔐 Admin Login</h2>
-  <input type="password" id="admin-key" placeholder="Enter Admin Key">
-  <button id="login-btn">Access Dashboard</button>
-  <p id="login-status"></p>
+<div class="container">
+  <h1>Dashboard</h1>
+  <div class="cards">
+    <a href="{{ url_for('chat') }}" class="card">Chat</a>
+    <a href="{{ url_for('train') }}" class="card">Train</a>
+    <a href="{{ url_for('view_training') }}" class="card">View Training Data</a>
+    <a href="{{ url_for('chat_logs') }}" class="card">Chat Logs</a>
+    <a href="{{ url_for('feedback') }}" class="card">Feedback</a>
+  </div>
 </div>
-
-<div id="dashboard" style="display:none">
-  <header class="top-bar">
-    <h1>📊 Admin Dashboard</h1>
-  </header>
-
-  <section class="stats-grid">
-    <div class="stat-card">
-      <h2 id="total-records">0</h2>
-      <p>Total Training Records</p>
-    </div>
-    <div class="stat-card">
-      <h2 id="total-chats">0</h2>
-      <p>Total User Messages</p>
-    </div>
-    <div class="stat-card">
-      <h2 id="avg-q-len">0</h2>
-      <p>Avg. Question Length</p>
-    </div>
-    <div class="stat-card">
-      <h2 id="avg-a-len">0</h2>
-      <p>Avg. Answer Length</p>
-    </div>
-  </section>
-
-  <section class="btn-row">
-    <button onclick="window.location.href='train.html'">🚀 Train Chatbot</button>
-    <button onclick="window.location.href='view_training.html'">📂 View Training Data</button>
-    <button onclick="window.location.href='chat_logs.html'">💬 View Chat History</button>
-    <button onclick="window.location.href='feedback.html'">📝 Feedback</button>
-  </section>
-
-  <section class="chart-section">
-    <h2>📊 Symptom Statistics</h2>
-    <canvas id="symptomChart"></canvas>
-  </section>
-
-  <section class="chart-section">
-    <h2>🌐 Language Usage</h2>
-    <canvas id="langChart"></canvas>
-  </section>
-
-</div>
-
-<script src="admin_dashboard.js"></script>
 </body>
 </html>
