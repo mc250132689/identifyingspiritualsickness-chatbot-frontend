@@ -1,19 +1,36 @@
 const API = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const ADMIN_KEY = "mc250132689";
 
 async function loadLogs() {
-  const res = await fetch(`${API}/chat-logs`);
-  const data = await res.json();
-  const box = document.getElementById("logContainer");
-  box.innerHTML = "";
+  try {
+    const res = await fetch(`${API}/chat-logs?key=${ADMIN_KEY}`);
+    const data = await res.json();
+    const box = document.getElementById("logContainer");
+    box.innerHTML = "";
 
-  data.logs.forEach(l => {
-    box.innerHTML += `
-      <div class="log-entry">
-        <b>User:</b> ${l.user}<br>
-        <b>Bot:</b> ${l.bot}
-        <small>${l.time}</small>
-      </div>
-    `;
+    data.logs.forEach(l => {
+      const el = document.createElement("div");
+      el.className = "log-entry";
+      el.innerHTML = `
+        <b>User:</b> ${escapeHtml(l.user)}<br>
+        <b>Bot:</b> ${escapeHtml(l.bot)}
+        <small>${new Date(l.time).toLocaleString()}</small>
+      `;
+      box.appendChild(el);
+    });
+  } catch (err) {
+    console.warn("Could not load chat logs", err);
+    document.getElementById("logContainer").innerText = "Unable to load logs.";
+  }
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.replace(/[&<>"'`=\/]/g, s => {
+    return ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+      "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
+    })[s];
   });
 }
 
