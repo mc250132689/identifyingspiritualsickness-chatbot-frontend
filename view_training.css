@@ -6,7 +6,7 @@ body {
 }
 
 .back-btn {
-  background: #444;
+  background: #28a745;
   color: white;
   padding: 10px 15px;
   border-radius: 6px;
@@ -48,7 +48,6 @@ th, td {
 
 th { background: #222; color: white; }
 
-/* ✅ Mobile Responsive */
 @media (max-width: 600px) {
   th, td { font-size: 14px; padding: 8px; }
   input, button { font-size: 14px; padding: 10px; }
