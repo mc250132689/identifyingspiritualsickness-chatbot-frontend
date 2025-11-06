@@ -2,28 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Train - Identifying Spiritual Sickness Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train - Spiritual Sickness Chatbot</title>
     <link rel="stylesheet" href="/static/css/train.css">
 </head>
 <body>
     <header>
-        <h1>Train Chatbot</h1>
-        <a href="/">Back to Dashboard</a>
+        <h1>🕌 Train Your Chatbot</h1>
     </header>
     <main>
         <form id="train-form">
-            <input type="text" id="question" placeholder="Question" required>
-            <textarea id="answer" placeholder="Answer" required></textarea>
-            <button type="submit">Submit</button>
+            <input type="text" id="question" placeholder="Enter question" required>
+            <textarea id="answer" placeholder="Enter answer" required></textarea>
+            <button type="submit">Train</button>
         </form>
-        <div id="train-list">
-            <h3>Existing Training Data</h3>
-            <ul>
-                {% for item in train_data %}
-                <li>{{ item.question }} → {{ item.answer }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+        <p id="train-response"></p>
     </main>
     <script src="/static/js/train.js"></script>
 </body>
