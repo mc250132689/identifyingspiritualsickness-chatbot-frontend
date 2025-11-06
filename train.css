@@ -1,0 +1,15 @@
+body{font-family:Arial,sans-serif;background:#f7f7f7;margin:0;padding:0;color:#333;}
+h1{margin:0 0 15px 0;font-weight:600;text-align:center;}
+.container{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+#train-form input,#train-form textarea{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;font-size:16px;}
+#train-form textarea{height:150px;resize:vertical;}
+#train-form button{padding:10px 15px;background:#28a745;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;}
+#train-form button:hover{background:#218838;}
+#train-response{font-weight:bold;margin:10px 0;}
+#train-preview{max-height:300px;overflow-y:auto;border:1px solid #ddd;padding:10px;border-radius:10px;background:#fafafa;margin-top:10px;}
+.train-msg-pair{display:flex;flex-direction:column;margin-bottom:12px;}
+.train-user-msg{align-self:flex-end;background:#cce5ff;padding:10px 15px;border-radius:15px;max-width:80%;word-wrap:break-word;line-height:1.5;}
+.train-bot-msg{align-self:flex-start;background:#e2e3e5;padding:10px 15px;border-radius:15px;max-width:80%;word-wrap:break-word;line-height:1.6;}
+.back-btn{margin-top:10px;padding:10px 15px;background:#28a745;color:white;border:none;border-radius:8px;width:100%;font-size:16px;cursor:pointer;}
+.back-btn:hover{background:#218838;}
+@media(max-width:500px){.train-user-msg,.train-bot-msg{max-width:95%;}}
