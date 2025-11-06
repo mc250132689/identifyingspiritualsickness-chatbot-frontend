@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Chat Logs</title>
-  <link rel="stylesheet" href="chat_logs.css">
+    <meta charset="UTF-8">
+    <title>Chat Logs - Identifying Spiritual Sickness Chatbot</title>
+    <link rel="stylesheet" href="/static/css/chat_logs.css">
 </head>
 <body>
-
-<button class="back-btn" onclick="location.href='admin_dashboard.html'">← Back to Dashboard</button>
-
-<h2>💬 Chat Logs</h2>
-
-<input type="text" id="searchInput" placeholder="Search messages...">
-
-<div id="logContainer"></div>
-
-<script src="chat_logs.js"></script>
+    <header>
+        <h1>Chat Logs</h1>
+        <a href="/">Back to Dashboard</a>
+    </header>
+    <main>
+        <ul>
+            {% for log in chat_logs %}
+            <li>{{ log.created_at }} | User: {{ log.user_message }} → Bot: {{ log.bot_response }}</li>
+            {% endfor %}
+        </ul>
+    </main>
+    <script src="/static/js/chat_logs.js"></script>
 </body>
 </html>
