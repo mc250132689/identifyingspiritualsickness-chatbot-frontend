@@ -1,0 +1,11 @@
+body{font-family:Arial,sans-serif;padding:10px;background:#f8f8f8;}
+h2{text-align:center;margin-bottom:10px;}
+input{width:100%;padding:10px;margin-bottom:10px;font-size:16px;}
+table{width:100%;border-collapse:collapse;background:#fff;}
+th,td{padding:10px;border-bottom:1px solid #ddd;}
+th{background:#222;color:white;}
+.delete-btn{background:crimson;color:white;padding:5px 10px;border:none;border-radius:5px;cursor:pointer;}
+.download-btn{background:seagreen;color:white;padding:8px 12px;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;}
+.back-btn{margin-top:10px;padding:10px;background:#28a745;color:white;border:none;border-radius:8px;width:100%;font-size:16px;cursor:pointer;}
+.back-btn:hover{background:#218838;}
+@media(max-width:500px){th,td,input,button{font-size:14px;padding:8px;}}
