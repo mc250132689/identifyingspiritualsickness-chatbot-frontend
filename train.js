@@ -33,11 +33,9 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     responseText.textContent = data.message || "Training data submitted!";
 
-    // Clear form
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
 
-    // Add preview
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
     userBubble.textContent = question;
@@ -54,7 +52,6 @@ form.addEventListener("submit", async (e) => {
     preview.appendChild(pair);
     preview.scrollTop = preview.scrollHeight;
 
-    // Update chat memory (if chat page is open)
     if (window.chatAddTrainedAnswer) {
       window.chatAddTrainedAnswer(question, answer);
     }
