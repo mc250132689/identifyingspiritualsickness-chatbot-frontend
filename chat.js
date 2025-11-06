@@ -1,87 +1,50 @@
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
-const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+const API = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
 
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-let trainedAnswers = {};
-
-// Load trained answers from backend
-async function loadTrainedAnswers() {
-  try {
-    const res = await fetch(TRAIN_DATA_URL);
-    const data = await res.json();
-    trainedAnswers = {};
-    data.training_data.forEach(item => {
-      trainedAnswers[item.question.toLowerCase()] = item.answer;
-    });
-    console.log("Loaded trained answers:", Object.keys(trainedAnswers).length);
-  } catch (err) {
-    console.error("Failed to load trained answers:", err);
-  }
-}
-
-loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 30000);
-
-function appendMessage(userText, botText) {
-  const container = document.createElement("div");
-  container.className = "message-pair";
-
-  const userMsg = document.createElement("div");
-  userMsg.className = "user-msg";
-  userMsg.textContent = userText;
-  container.appendChild(userMsg);
-
-  const botMsg = document.createElement("div");
-  botMsg.className = "bot-msg";
-  botMsg.innerHTML = botText || "🤲 Generating response...";
-  container.appendChild(botMsg);
-
-  chatBox.appendChild(container);
+// Add message to chat UI
+function addMessage(text, sender) {
+  const msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.innerText = text;
+  chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
-
-  return botMsg;
 }
 
-function formatBotAnswer(text) {
-  if (!text) return "";
-  return text
-    .replace(/\r\n|\r|\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>");
-}
-
+// Send message
 async function sendMessage() {
-  const userText = input.value.trim();
-  if (!userText) return;
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage(message, "user");
   input.value = "";
 
-  const trained = trainedAnswers[userText.toLowerCase()];
-  if (trained) {
-    appendMessage(`🧍: ${userText}`, `🤖: ${formatBotAnswer(trained)}`);
-    return;
-  }
-
-  const botMsgElem = appendMessage(`🧍: ${userText}`, null);
+  // Loading bubble
+  const loading = document.createElement("div");
+  loading.classList.add("message", "bot");
+  loading.innerText = "Typing...";
+  chatBox.appendChild(loading);
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userText }),
+      body: JSON.stringify({ message })
     });
+
     const data = await res.json();
-    botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
+    chatBox.removeChild(loading);
+    addMessage(data.response, "bot");
+
   } catch (err) {
-    botMsgElem.innerHTML = "🤖: Error connecting to backend.";
-    console.error(err);
+    chatBox.removeChild(loading);
+    addMessage("⚠️ Server is offline. Try again later.", "bot");
   }
 }
 
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+sendBtn.onclick = sendMessage;
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
 });
