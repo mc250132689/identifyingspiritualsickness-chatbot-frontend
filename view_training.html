@@ -1,32 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Training Data Viewer</title>
-  <link rel="stylesheet" href="view_training.css">
+    <meta charset="UTF-8">
+    <title>View Training - Identifying Spiritual Sickness Chatbot</title>
+    <link rel="stylesheet" href="/static/css/view_training.css">
 </head>
 <body>
-
-<button class="back-btn" onclick="location.href='admin_dashboard.html'">← Back to Dashboard</button>
-
-<h2>📘 Training Data Records</h2>
-
-<input type="text" id="searchInput" placeholder="Search questions or answers...">
-
-<button class="download-btn" onclick="downloadCSV()">Download CSV</button>
-
-<table>
-  <thead>
-    <tr>
-      <th>Question</th>
-      <th>Answer</th>
-      <th>Lang</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody id="dataTable"></tbody>
-</table>
-
-<script src="view_training.js"></script>
+    <header>
+        <h1>View Training Data</h1>
+        <a href="/">Back to Dashboard</a>
+    </header>
+    <main>
+        <ul>
+            {% for item in train_data %}
+            <li>{{ item.id }} | {{ item.question }} → {{ item.answer }} | Lang: {{ item.lang }} | {{ item.created_at }}</li>
+            {% endfor %}
+        </ul>
+    </main>
+    <script src="/static/js/view_training.js"></script>
 </body>
 </html>
