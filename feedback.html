@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📝 Feedback & Suggestions</title>
+  <link rel="stylesheet" href="feedback.css">
+</head>
+<body>
+<div class="container">
+  <h1>📝 Feedback & Suggestions</h1>
+  <form id="feedback-form">
+    <input type="text" id="name" placeholder="Your name" required>
+    <textarea id="message" placeholder="Your feedback..." required></textarea>
+    <button type="submit">Submit Feedback</button>
+  </form>
+  <p id="feedback-response"></p>
+  <h2>All Feedback</h2>
+  <div id="feedback-list"></div>
+  <button class="back-btn" onclick="window.location.href='admin_dashboard.html'">⬅ Back to Dashboard</button>
+</div>
+<script src="feedback.js"></script>
+</body>
+</html>
