@@ -1,18 +1,32 @@
 const API = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const ADMIN_KEY = "mc250132689";
 
 async function loadFeedback() {
-  const res = await fetch(`${API}/feedback`);
-  const data = await res.json();
-  const box = document.getElementById("feedbackContainer");
-  box.innerHTML = "";
+  try {
+    const res = await fetch(`${API}/feedback?key=${ADMIN_KEY}`);
+    const data = await res.json();
+    const box = document.getElementById("feedbackContainer");
+    box.innerHTML = "";
 
-  data.feedback.forEach(f => {
-    box.innerHTML += `
-      <div class="feedback-entry">
-        <p>${f.text}</p>
-        <small>${f.time}</small>
-      </div>
-    `;
+    data.feedback.forEach(f => {
+      const el = document.createElement("div");
+      el.className = "feedback-entry";
+      el.innerHTML = `<p>${escapeHtml(f.text)}</p><small>${new Date(f.time).toLocaleString()}</small>`;
+      box.appendChild(el);
+    });
+  } catch (err) {
+    console.warn("Could not load feedback", err);
+    document.getElementById("feedbackContainer").innerText = "Unable to load feedback.";
+  }
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.replace(/[&<>"'`=\/]/g, s => {
+    return ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+      "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
+    })[s];
   });
 }
 
