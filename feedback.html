@@ -1,21 +1,22 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Feedback - Spiritual Chatbot</title>
-<link rel="stylesheet" href="feedback.css" />
+    <meta charset="UTF-8">
+    <title>Feedback - Identifying Spiritual Sickness Chatbot</title>
+    <link rel="stylesheet" href="/static/css/feedback.css">
 </head>
 <body>
-  <main class="wrap">
-    <h1>Feedback</h1>
-    <form id="feedbackForm">
-      <textarea id="message" placeholder="Write your feedback..." required></textarea>
-      <button type="submit">Submit Feedback</button>
-    </form>
-    <p id="status"></p>
-    <button onclick="location.href='admin_dashboard.html'">← Back to Dashboard</button>
-  </main>
-<script src="feedback.js"></script>
+    <header>
+        <h1>User Feedback</h1>
+        <a href="/">Back to Dashboard</a>
+    </header>
+    <main>
+        <ul>
+            {% for fb in feedback_data %}
+            <li>{{ fb.created_at }} | {{ fb.text }}</li>
+            {% endfor %}
+        </ul>
+    </main>
+    <script src="/static/js/feedback.js"></script>
 </body>
 </html>
