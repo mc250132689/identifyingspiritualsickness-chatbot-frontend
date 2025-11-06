@@ -32,7 +32,7 @@ loginBtn.addEventListener("click", async () => {
 
 async function loadChatCount(key) {
   try {
-    const res = await fetch(`${BASE_URL}/get-chat-logs?key=${key}`);
+    const res = await fetch(`${BASE_URL}/chat-logs?key=${key}`);
     const data = await res.json();
     document.getElementById("total-chats").textContent = data.logs.length;
   } catch { console.warn("No chat logs API found"); }
