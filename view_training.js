@@ -15,8 +15,8 @@ function displayData(data) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.question}</td>
-      <td>${item.answer}</td>
-      <td>${item.lang}</td>
+      <td>${item.answer.replace(/\n/g, "<br>")}</td>
+      <td>${item.lang || "?"}</td>
       <td><button class="delete-btn" onclick="deleteEntry('${item.question}')">Delete</button></td>
     `;
     table.appendChild(tr);
