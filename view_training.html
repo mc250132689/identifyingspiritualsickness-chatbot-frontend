@@ -1,236 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Training Data Dashboard</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
-.container { max-width: 1200px; margin:auto; padding:20px; }
-h1 { text-align:center; color:#333; }
-.controls { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
-.controls input, .controls select, .controls button { padding:8px; font-size:14px; }
-.table-container { overflow-x:auto; }
-table { width:100%; border-collapse: collapse; background:#fff; }
-th, td { border:1px solid #ddd; padding:8px; text-align:left; }
-th { background:#007bff; color:white; }
-tr:nth-child(even) { background:#f2f2f2; }
-.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px; margin-bottom:20px; }
-.stat-card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; }
-canvas { background:#fff; border-radius:10px; padding:10px; margin-bottom:20px; }
-.action-btn { cursor:pointer; padding:4px 8px; border-radius:5px; font-size:13px; margin-right:5px; }
-.update-btn { background:#28a745; color:white; border:none; }
-.delete-btn { background:#dc3545; color:white; border:none; }
-@media(max-width:768px){ .controls{ flex-direction:column; } table, th, td{ font-size:13px; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 Training Data</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
 <div class="container">
-<h1>Training Data Dashboard</h1>
-
-<div class="controls">
-  <input type="text" id="keyword" placeholder="Search question or answer">
-  <select id="langFilter">
+  <h1>📊 Training Data Analytics</h1>
+  <input type="text" id="keyword" placeholder="Search keyword">
+  <select id="filter-lang">
     <option value="">All Languages</option>
+    <option value="en">English</option>
+    <option value="ms">Malay</option>
+    <option value="ar">Arabic</option>
   </select>
-  <input type="text" id="adminKey" placeholder="Admin Key">
-  <button id="refreshBtn">🔄 Refresh</button>
-  <button id="exportBtn">📤 Export CSV</button>
-</div>
+  <button onclick="loadTraining()">Filter</button>
 
-<div class="stats">
-  <div class="stat-card">
-    <h3>Total Records</h3>
-    <p id="totalRecords">0</p>
-  </div>
-  <div class="stat-card">
-    <h3>Average Question Length</h3>
-    <p id="avgQLen">0</p>
-  </div>
-  <div class="stat-card">
-    <h3>Average Answer Length</h3>
-    <p id="avgALen">0</p>
-  </div>
-</div>
-
-<canvas id="langChart" height="150"></canvas>
-
-<div class="table-container">
-  <table id="trainingTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Language</th>
-        <th>Question</th>
-        <th>Answer</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
+  <table id="training-table" class="chat-table">
+    <thead><tr><th>Lang</th><th>Question</th><th>Answer</th></tr></thead>
     <tbody></tbody>
   </table>
+
+  <h3>Analytics Charts</h3>
+  <canvas id="langChart"></canvas>
+  <canvas id="lenChart"></canvas>
 </div>
-
-</div>
-
-<script>
-const BASE_URL = "http://localhost:8000"; // change if deployed
-let trainingData = [];
-
-// Fetch and render data
-async function fetchData() {
-  const key = document.getElementById("adminKey").value.trim();
-  if(!key){ alert("Enter admin key"); return; }
-  try{
-    const res = await fetch(`${BASE_URL}/get-training-data`);
-    const data = await res.json();
-    trainingData = data.training_data || [];
-    renderTable();
-    populateLangFilter();
-    renderStats();
-    renderChart();
-  } catch(e){ console.error(e); alert("Failed to fetch data"); }
-}
-
-// Populate language filter dropdown
-function populateLangFilter(){
-  const langs = [...new Set(trainingData.map(d => d.lang))];
-  const select = document.getElementById("langFilter");
-  select.innerHTML = `<option value="">All Languages</option>`;
-  langs.forEach(l => {
-    const opt = document.createElement("option");
-    opt.value = l; opt.textContent = l.toUpperCase();
-    select.appendChild(opt);
-  });
-}
-
-// Render table with filters
-function renderTable(){
-  const tbody = document.querySelector("#trainingTable tbody");
-  const keyword = document.getElementById("keyword").value.toLowerCase();
-  const lang = document.getElementById("langFilter").value;
-  tbody.innerHTML = "";
-  let count = 1;
-  trainingData.filter(d=>{
-    const matchKeyword = d.question.toLowerCase().includes(keyword) || d.answer.toLowerCase().includes(keyword);
-    const matchLang = !lang || d.lang === lang;
-    return matchKeyword && matchLang;
-  }).forEach(item=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${count++}</td>
-                    <td>${item.lang.toUpperCase()}</td>
-                    <td>${item.question}</td>
-                    <td>${item.answer}</td>
-                    <td>
-                      <button class="action-btn update-btn" onclick="updateEntry('${encodeURIComponent(item.question)}')">Update</button>
-                      <button class="action-btn delete-btn" onclick="deleteEntry('${encodeURIComponent(item.question)}')">Delete</button>
-                    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-// Render statistics
-function renderStats(){
-  const total = trainingData.length;
-  const avgQ = total ? Math.round(trainingData.reduce((a,b)=>a+b.question.length,0)/total) : 0;
-  const avgA = total ? Math.round(trainingData.reduce((a,b)=>a+b.answer.length,0)/total) : 0;
-  document.getElementById("totalRecords").textContent = total;
-  document.getElementById("avgQLen").textContent = avgQ;
-  document.getElementById("avgALen").textContent = avgA;
-}
-
-// Render language chart
-let langChart;
-function renderChart(){
-  const ctx = document.getElementById("langChart").getContext("2d");
-  const langCounts = {};
-  trainingData.forEach(d=>{ langCounts[d.lang] = (langCounts[d.lang]||0)+1; });
-  const labels = Object.keys(langCounts).map(l=>l.toUpperCase());
-  const counts = Object.values(langCounts);
-  if(langChart) langChart.destroy();
-  langChart = new Chart(ctx, {
-    type:'bar',
-    data:{ labels:labels, datasets:[{ label:'Number of Questions', data:counts, backgroundColor:'rgba(0,123,255,0.6)' }] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } } }
-  });
-}
-
-// Delete entry
-async function deleteEntry(question){
-  if(!confirm("Are you sure you want to delete this entry?")) return;
-  const key = document.getElementById("adminKey").value.trim();
-  try{
-    const qDecoded = decodeURIComponent(question);
-    // For deletion, send empty answer to /train to override
-    await fetch(`${BASE_URL}/train`, {
-      method:'POST',
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ question:qDecoded, answer:"" })
-    });
-    // Remove locally
-    trainingData = trainingData.filter(d=>d.question!==qDecoded);
-    renderTable();
-    renderStats();
-    renderChart();
-    alert("Deleted successfully!");
-  } catch(e){ console.error(e); alert("Delete failed"); }
-}
-
-// Update entry
-function updateEntry(question){
-  const qDecoded = decodeURIComponent(question);
-  const entry = trainingData.find(d=>d.question===qDecoded);
-  if(!entry) return;
-  const newAnswer = prompt("Update answer:", entry.answer);
-  if(newAnswer===null) return; // cancel
-  const key = document.getElementById("adminKey").value.trim();
-  fetch(`${BASE_URL}/train`, {
-    method:'POST',
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ question:qDecoded, answer:newAnswer })
-  }).then(res=>res.json()).then(data=>{
-    entry.answer = newAnswer;
-    renderTable();
-    renderStats();
-    renderChart();
-    alert("Updated successfully!");
-  }).catch(err=>{ console.error(err); alert("Update failed"); });
-}
-
-// Export filtered data as CSV
-function exportCSV(){
-  const keyword = document.getElementById("keyword").value.toLowerCase();
-  const lang = document.getElementById("langFilter").value;
-  const filtered = trainingData.filter(d=>{
-    const matchKeyword = d.question.toLowerCase().includes(keyword) || d.answer.toLowerCase().includes(keyword);
-    const matchLang = !lang || d.lang === lang;
-    return matchKeyword && matchLang;
-  });
-  if(!filtered.length) return alert("No data to export!");
-  let csvContent = "data:text/csv;charset=utf-8,Language,Question,Answer\n";
-  filtered.forEach(d=> {
-    csvContent += `"${d.lang}","${d.question.replace(/"/g,'""')}","${d.answer.replace(/"/g,'""')}"\n`;
-  });
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download","training_data.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// Event listeners
-document.getElementById("keyword").addEventListener("input", renderTable);
-document.getElementById("langFilter").addEventListener("change", renderTable);
-document.getElementById("refreshBtn").addEventListener("click", fetchData);
-document.getElementById("exportBtn").addEventListener("click", exportCSV);
-
-// Initial fetch
-fetchData();
-</script>
-
+<script src="view_training.js"></script>
 </body>
 </html>
