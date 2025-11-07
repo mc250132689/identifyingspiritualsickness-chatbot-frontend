@@ -1,79 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🕌 Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8" />
+  <title>Admin Dashboard - Spiritual Sickness Chatbot</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>🕌 Admin Dashboard</h1>
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tablink active" onclick="openTab(event, 'viewData')">View Data</button>
-      <button class="tablink" onclick="openTab(event, 'trainData')">Train</button>
-      <button class="tablink" onclick="openTab(event, 'analytics')">Analytics</button>
-    </div>
-
-    <!-- Tab: View Data -->
-    <div id="viewData" class="tabcontent" style="display: block;">
-      <h3>Training Data</h3>
-      <div class="filter-controls">
-        <input type="text" id="keyword" placeholder="Search keyword">
-        <select id="lang-filter">
-          <option value="">All Languages</option>
-          <option value="en">English</option>
-          <option value="ms">Malay</option>
-          <option value="ar">Arabic</option>
-        </select>
-        <button onclick="filterTable()">Filter</button>
+  <div style="max-width:1100px;margin:20px auto;">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
+      <h1>Admin Dashboard</h1>
+      <div>
+        <input id="username" placeholder="username" style="padding:8px;border-radius:6px;border:1px solid #e0f0ea">
+        <input id="password" type="password" placeholder="password" style="padding:8px;border-radius:6px;border:1px solid #e0f0ea">
+        <button id="login-btn" style="padding:8px 10px;background:#0b7a63;color:#fff;border:none;border-radius:6px;">Login</button>
+        <button id="logout-btn" style="padding:8px 10px;background:#b2b2b2;color:#fff;border:none;border-radius:6px;display:none;">Logout</button>
       </div>
-      <table id="training-table" class="chat-table">
-        <thead>
-          <tr><th>Lang</th><th>Question</th><th>Answer</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
     </div>
 
-    <!-- Tab: Train Data -->
-    <div id="trainData" class="tabcontent">
-      <h3>Add Training Data</h3>
-      <form id="trainForm">
-        <label>Language</label>
-        <select id="new-lang" required>
-          <option value="en">English</option>
-          <option value="ms">Malay</option>
-          <option value="ar">Arabic</option>
-        </select>
-        <label>Question</label>
-        <input type="text" id="new-question" required>
-        <label>Answer</label>
-        <input type="text" id="new-answer" required>
-        <button type="submit">Add</button>
-      </form>
-      <div id="trainMessage"></div>
-    </div>
-
-    <!-- Tab: Analytics -->
-    <div id="analytics" class="tabcontent">
-      <h3>Analytics & Export/Import</h3>
-      <div class="dashboard-controls">
-        <button onclick="exportData()">📤 Export Data</button>
-        <input type="file" id="import-file" accept=".json,.csv">
-        <button onclick="importData()">📥 Import Data</button>
+    <div id="dashboard" style="display:none;margin-top:12px;">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div class="card" style="flex:1;min-width:220px;">
+          <h3>Total Training Records</h3>
+          <div id="total-records" style="font-size:20px;color:#065049">0</div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px;">
+          <h3>Avg Question Length</h3>
+          <div id="avg-q-len">0</div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px;">
+          <h3>Avg Answer Length</h3>
+          <div id="avg-a-len">0</div>
+        </div>
       </div>
-      <div class="charts">
-        <canvas id="langChart"></canvas>
-        <canvas id="lengthChart"></canvas>
-        <canvas id="freqChart"></canvas>
+
+      <div style="display:grid;grid-template-columns:1fr 420px;gap:12px;margin-top:12px;">
+        <div>
+          <div class="card">
+            <h3>Train / Add Q&A</h3>
+            <form id="train-form">
+              <input id="t-question" placeholder="Question" required />
+              <textarea id="t-answer" placeholder="Answer (use Islamic sources)."></textarea>
+              <button type="submit">Save</button>
+            </form>
+            <p id="train-response"></p>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <h3>Training Data</h3>
+            <input id="search-input" placeholder="Search..." style="width:100%;padding:8px;border-radius:6px;border:1px solid #e0f0ea">
+            <div id="training-list" style="max-height:40vh;overflow:auto;margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <h3>Live Feed</h3>
+            <div id="live-feed" class="feed"></div>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <h3>Chat & Assessment Stats</h3>
+            <div id="stats-area"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-<script src="admin_dashboard.js"></script>
+<script>
+const BASE = "https://identifyingspiritualsickness-chatbot.onrender.com";
+let token = localStorage.getItem("admin_token") || null;
+
+const loginBtn = document.getElementById("login-btn");
+const logoutBtn = document.getElementById("logout-btn");
+const username = document.getElementById("username");
+const password = document.getElementById("password");
+const dashboard = document.getElementById("dashboard");
+
+function showDashboard(show){
+  dashboard.style.display = show ? "block" : "none";
+  logoutBtn.style.display = show ? "inline-block" : "none";
+  loginBtn.style.display = show ? "none" : "inline-block";
+}
+
+if(token){
+  showDashboard(true);
+  initializeAdmin();
+} else {
+  showDashboard(false);
+}
+
+loginBtn.addEventListener("click", async ()=>{
+  const user = username.value.trim();
+  const pass = password.value.trim();
+  if(!user || !pass) return alert("Enter credentials");
+  try {
+    const res = await fetch(`${BASE}/login`, {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username:user,password:pass})
+    });
+    const data = await res.json();
+    if(data.access_token){
+      token = data.access_token;
+      localStorage.setItem("admin_token", token);
+      showDashboard(true);
+      initializeAdmin();
+    } else {
+      alert("Login failed");
+    }
+  } catch(e){
+    alert("Login error");
+    console.error(e);
+  }
+});
+
+logoutBtn.addEventListener("click", ()=>{
+  token = null;
+  localStorage.removeItem("admin_token");
+  showDashboard(false);
+});
+
+// Initialize admin features
+async function initializeAdmin(){
+  await loadStats();
+  await loadTraining();
+  startSSE();
+}
+
+// Load analytics via protected endpoints (we use /get-training-data and /get-chats)
+async function loadStats(){
+  try {
+    // fallback: use /admin-stats?key=... if needed
+    const res = await fetch(`${BASE}/get-training-data?token=${encodeURIComponent(token)}`).catch(()=>null);
+    // our get-training-data requires token via Query param 'token'
+    let training = [];
+    if(res && res.ok){
+      const d = await res.json();
+      training = d.training_data || [];
+    } else {
+      // try fetch via explicit header + proxy endpoint
+      const res2 = await fetch(`${BASE}/get-training-data?token=${encodeURIComponent(token)}`);
+      const d = await res2.json();
+      training = d.training_data || [];
+    }
+    document.getElementById("total-records").textContent = training.length;
+    const avgQ = training.length ? Math.round(training.reduce((s,i)=>s+i.question.length,0)/training.length) : 0;
+    const avgA = training.length ? Math.round(training.reduce((s,i)=>s+i.answer.length,0)/training.length) : 0;
+    document.getElementById("avg-q-len").textContent = avgQ;
+    document.getElementById("avg-a-len").textContent = avgA;
+
+    // get chat stats
+    const chatsRes = await fetch(`${BASE}/get-chats?token=${encodeURIComponent(token)}`);
+    const chdata = await chatsRes.json();
+    const chats = chdata.chats || [];
+    const total_chats = chats.length;
+    const types = {};
+    chats.forEach(c => { types[c.type || "chat"] = (types[c.type || "chat"]||0)+1 });
+    const statsArea = document.getElementById("stats-area");
+    statsArea.innerHTML = `<p>Total chats: ${total_chats}</p><p>Types: ${JSON.stringify(types)}</p>`;
+  } catch(e){
+    console.error(e);
+  }
+}
+
+// Load training data list
+async function loadTraining(){
+  try {
+    const res = await fetch(`${BASE}/get-training-data?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    const list = data.training_data || [];
+    const container = document.getElementById("training-list");
+    container.innerHTML = "";
+    list.slice().reverse().forEach(item => {
+      const div = document.createElement("div");
+      div.style.padding = "8px";
+      div.style.borderBottom = "1px solid #eef7f1";
+      div.innerHTML = `<strong>${item.question}</strong><div style="margin-top:6px;font-size:13px;color:#065049">${item.answer}</div><div style="font-size:12px;color:#888;margin-top:6px">Lang: ${item.lang||'en'} ${item.auto?'<em>(auto)</em>':''}</div>`;
+      container.appendChild(div);
+    });
+  } catch(e){
+    console.error(e);
+  }
+}
+
+// Train form submit
+document.getElementById("train-form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const q = document.getElementById("t-question").value.trim();
+  const a = document.getElementById("t-answer").value.trim();
+  if(!q || !a) return alert("Fill both fields");
+  try {
+    const res = await fetch(`${BASE}/train?token=${encodeURIComponent(token)}`, {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({question: q, answer: a})
+    });
+    const d = await res.json();
+    document.getElementById("train-response").textContent = d.message || "Saved";
+    document.getElementById("t-question").value = "";
+    document.getElementById("t-answer").value = "";
+    await loadTraining();
+    await loadStats();
+  } catch(e){
+    console.error(e);
+    alert("Failed to save");
+  }
+});
+
+// Search training
+document.getElementById("search-input").addEventListener("input", async (e)=>{
+  const q = e.target.value.toLowerCase();
+  const items = document.querySelectorAll("#training-list > div");
+  items.forEach(it=>{
+    const txt = it.textContent.toLowerCase();
+    it.style.display = txt.includes(q) ? "" : "none";
+  });
+});
+
+// SSE live feed
+let evtSource = null;
+function startSSE(){
+  if(evtSource) evtSource.close();
+  evtSource = new EventSource(`${BASE}/stream`);
+  const live = document.getElementById("live-feed");
+  evtSource.onmessage = function(e){
+    const obj = JSON.parse(e.data);
+    const el = document.createElement("div");
+    el.style.padding="8px";
+    el.style.borderBottom="1px solid #eef7f1";
+    if(obj.type === "chat"){
+      el.innerHTML = `<strong>Chat</strong><div style="font-size:13px">${obj.data.message}</div>`;
+    } else if(obj.type === "assessment"){
+      el.innerHTML = `<strong>Assessment</strong><div style="font-size:13px">${obj.data.input}</div><div style="font-size:12px;color:#555">Probable: ${obj.data.assessment.probable.join(", ")}</div>`;
+    } else if(obj.type === "train_update"){
+      el.innerHTML = `<strong>Train Update</strong><div style="font-size:13px">${obj.data.question}</div>`;
+    } else {
+      el.innerHTML = `<div>${JSON.stringify(obj)}</div>`;
+    }
+    live.prepend(el);
+    while (live.childNodes.length > 150) live.removeChild(live.lastChild);
+  };
+  evtSource.onerror = function(err){
+    console.error("SSE error", err);
+    // try reconnect after a delay
+    setTimeout(()=>startSSE(), 5000);
+  };
+}
+</script>
 </body>
 </html>
