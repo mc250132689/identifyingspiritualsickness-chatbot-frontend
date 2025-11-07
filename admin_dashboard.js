@@ -1,52 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Identifying Spiritual Sickness Chatbot</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <div class="left">
-      <div class="header">
-        <h1>بسم الله الرحمن الرحيم — Identifying Spiritual Sickness Chatbot</h1>
-        <p>Only answers Islamic spiritual health topics: sihr, jinn, ruqyah, waswas, evil eye, dreams.</p>
-      </div>
+const token = localStorage.getItem("access_token");
+if (!token) window.location.href = "/login.html";
 
-      <div id="chat-box" aria-live="polite"></div>
+let conversationData = [];
 
-      <div class="input-container">
-        <input type="text" id="user-input" placeholder="Type your question (e.g., 'Signs of sihr?')">
-        <button id="send-btn">Send</button>
-      </div>
+// Load conversations
+async function loadConversations() {
+  try {
+    const response = await fetch("/admin/conversations", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-      <div style="margin-top:10px;">
-        <textarea id="assessment-text" placeholder="Describe symptoms for Ruqyah assessment (optional)" rows="3" style="width:100%; padding:8px; border-radius:8px; border:1px solid #e0f0ea;"></textarea>
-        <button id="assess-btn" style="margin-top:8px; padding:10px 12px; background:#0b7a63; color:#fff; border:none; border-radius:8px;">Run Ruqyah Assessment</button>
-      </div>
-    </div>
+    if (response.status === 401) {
+      alert("Session expired. Please login again.");
+      localStorage.removeItem("access_token");
+      window.location.href = "/login.html";
+      return;
+    }
 
-    <div class="right">
-      <!-- Admin quick links -->
-      <div class="card">
-        <strong>Admin</strong>
-        <p class="small">Open <a href="admin_dashboard.html" target="_blank">Admin Dashboard</a> to manage training data and view live chat & assessments.</p>
-      </div>
+    conversationData = await response.json();
+    applySearchFilter();
+  } catch (error) {
+    console.error("Error loading conversations:", error);
+  }
+}
 
-      <!-- Quick guide -->
-      <div class="card">
-        <strong>How to use</strong>
-        <p class="small">Ask only about spiritual topics. For assessments, describe symptoms and click "Run Ruqyah Assessment".</p>
-      </div>
+// Render table rows
+function renderTable(data) {
+  const tableBody = document.querySelector("#conversation-table tbody");
+  tableBody.innerHTML = "";
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.user || "Anonymous"}</td>
+      <td>${row.message}</td>
+      <td>${row.reply}</td>
+      <td>${row.timestamp}</td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
 
-      <!-- Recent short feed -->
-      <div class="card">
-        <strong>Recent activity (cached)</strong>
-        <div id="mini-feed" class="feed"></div>
-      </div>
-    </div>
-  </div>
+// Search filter
+function applySearchFilter() {
+  const query = document.getElementById("search-input").value.toLowerCase();
+  const filtered = conversationData.filter(row =>
+    (row.user || "").toLowerCase().includes(query) ||
+    row.message.toLowerCase().includes(query) ||
+    row.reply.toLowerCase().includes(query)
+  );
+  renderTable(filtered);
+}
 
-  <script src="chat.js"></script>
-</body>
-</html>
+document.getElementById("search-input").addEventListener("input", applySearchFilter);
+
+// Export to CSV
+document.getElementById("export-btn").addEventListener("click", () => {
+  let csv = "User,Message,Reply,Timestamp\n";
+  conversationData.forEach(row => {
+    csv += `"${row.user || "Anonymous"}","${row.message}","${row.reply}","${row.timestamp}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "conversations.csv";
+  a.click();
+});
+
+// Manual refresh
+document.getElementById("refresh-btn").addEventListener("click", loadConversations);
+
+// Auto refresh every 5s
+setInterval(loadConversations, 5000);
+
+// Logout
+document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.removeItem("access_token");
+  window.location.href = "/login.html";
+});
+
+// Initial load
+loadConversations();
