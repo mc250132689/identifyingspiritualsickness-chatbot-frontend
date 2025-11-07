@@ -1,25 +1,116 @@
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .container {
-    margin: 15px;
-    padding: 15px;
-  }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(145deg, #eaf6f6, #d9f0e0);
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
 
-  #chat-box {
-    max-height: 300px;
-  }
+.container {
+  max-width: 700px;
+  margin: 50px auto;
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  border-top: 4px solid #1abc9c;
+}
 
-  #user-input, .input-container button {
-    font-size: 14px;
-    padding: 8px;
-  }
+h1 {
+  text-align: center;
+  color: #145a32;
+}
 
-  .user-msg, .bot-msg, .train-user-msg, .train-bot-msg {
-    max-width: 95%;
-    font-size: 14px;
-  }
+#chat-box {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f0fff0;
+}
 
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
+.input-container {
+  display: flex;
+  margin-top: 10px;
+}
+
+#user-input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px 0 0 8px;
+  border: 1px solid #ccc;
+}
+
+.input-container button {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: #1abc9c;
+  color: white;
+  cursor: pointer;
+}
+
+.input-container button:hover {
+  background: #138d75;
+}
+
+.message-pair {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.user-msg {
+  align-self: flex-end;
+  text-align: right;
+  margin: 3px 0;
+  padding: 10px 15px;
+  background: #d1f2eb;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+.bot-msg {
+  align-self: flex-start;
+  text-align: left;
+  margin: 3px 0 0 0;
+  padding: 10px 15px;
+  background: #f9f9f9;
+  border-left: 3px solid #1abc9c;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.6;
+}
+
+.bot-msg p { margin: 8px 0; }
+
+.collapsible-btn {
+  background: #1abc9c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.collapsible-btn:hover { background: #138d75; }
+
+.chat-table td {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+}
+
+@media (max-width: 600px) {
+  .container { margin: 20px 10px; padding: 15px; }
+  .user-msg, .bot-msg { max-width: 95%; }
+  #user-input { font-size: 14px; }
 }
