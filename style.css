@@ -1,0 +1,221 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f7;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 700px;
+  margin: 50px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+}
+
+#chat-box {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.input-container {
+  display: flex;
+  margin-top: 10px;
+}
+
+#user-input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px 0 0 8px;
+  border: 1px solid #ccc;
+}
+
+.input-container button {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.input-container button:hover {
+  background: #0056b3;
+}
+
+/* Chat bubbles */
+.message-pair {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.user-msg {
+  align-self: flex-end;
+  text-align: right;
+  margin: 3px 0;
+  padding: 10px 15px;
+  background: #cce5ff;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+.bot-msg {
+  align-self: flex-start;
+  text-align: left;
+  margin: 3px 0 0 0;
+  padding: 10px 15px;
+  background: #e2e3e5;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.6;
+}
+
+/* Paragraph spacing inside bot message */
+.bot-msg p {
+  margin: 10px 0;
+}
+
+/* Collapsible long content */
+.collapsible-container {
+  margin-top: 5px;
+}
+
+.collapsible-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.collapsible-btn:hover {
+  background: #0056b3;
+}
+
+/* Tables in chat messages */
+.chat-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.chat-table td {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+}
+
+/* Headings inside chat */
+.bot-msg h3 {
+  margin: 10px 0 5px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Train form and preview */
+#train-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+#train-form textarea {
+  width: 100%;
+  height: 300px;      /* Taller box for writing long text */
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  resize: vertical;   /* User can manually adjust height if needed */
+}
+
+#train-form button {
+  padding: 10px 20px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#train-form button:hover {
+  background: #218838;
+}
+
+#train-response {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+#train-preview {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fafafa;
+  margin-top: 15px;
+}
+
+/* Chat bubble style inside preview */
+.train-msg-pair {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.train-user-msg {
+  align-self: flex-end;
+  text-align: right;
+  background: #cce5ff;
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+.train-bot-msg {
+  align-self: flex-start;
+  text-align: left;
+  background: #e2e3e5;
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.6;
+}
+
+/* Tables inside bot bubble */
+.bot-msg table {
+  width: 100%;
+}
+
+/* Optional: small screens adjustments */
+@media (max-width: 600px) {
+  .user-msg, .bot-msg, .train-user-msg, .train-bot-msg {
+    max-width: 95%;
+  }
+}
