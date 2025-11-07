@@ -1,114 +1,94 @@
-// Backend API URLs
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
-const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-
 const chatBox = document.getElementById("chat-box");
-const input = document.getElementById("user-input");
+const userInput = document.getElementById("user-input");
 
-// In-memory dictionary for trained Q&A
-let trainedAnswers = {};
-
-// Load trained answers from backend
-async function loadTrainedAnswers() {
-  try {
-    const res = await fetch(TRAIN_DATA_URL);
-    const data = await res.json();
-    if (data.training_data && Array.isArray(data.training_data)) {
-      trainedAnswers = {};
-      data.training_data.forEach(item => {
-        trainedAnswers[item.question.toLowerCase()] = item.answer;
-      });
-    }
-  } catch (err) {
-    console.error("Failed to load trained answers:", err);
-  }
+// Detect user language (fallback: browser language)
+function detectLanguage(text) {
+  text = text.trim();
+  if (/[\u0600-\u06FF]/.test(text)) return "ar"; // Arabic script
+  if (/[\u4E00-\u9FFF]/.test(text)) return "zh"; // Chinese script just in case
+  if (/[\u0E80-\u0EFF]/.test(text)) return "ms"; // Malay Jawi (rare)
+  
+  // Browser language fallback
+  const lang = navigator.language || navigator.userLanguage;
+  if (lang.startsWith("ms")) return "ms";
+  if (lang.startsWith("ar")) return "ar";
+  return "en";
 }
 
-// Initial load
-loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 30000);
+// WebSocket connection
+const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat");
 
-// Add new trained answer dynamically
-window.chatAddTrainedAnswer = (question, answer) => {
-  trainedAnswers[question.toLowerCase()] = answer;
-};
+// Create timestamp string
+function getTimestamp() {
+  const now = new Date();
+  return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
 
-// Append message to chat
-function appendMessage(userText, botText) {
-  const container = document.createElement("div");
-  container.className = "message-pair";
-
-  const userMsg = document.createElement("div");
-  userMsg.className = "user-msg";
-  userMsg.textContent = userText;
-  container.appendChild(userMsg);
-
-  const botMsg = document.createElement("div");
-  botMsg.className = "bot-msg";
-  botMsg.innerHTML = botText || "🤲 Generating response...";
-  container.appendChild(botMsg);
-
-  chatBox.appendChild(container);
+// Auto-scroll chat to bottom
+function scrollChat() {
   chatBox.scrollTop = chatBox.scrollHeight;
-
-  return botMsg;
 }
 
-// Format bot answer with HTML
-function formatBotAnswer(text) {
-  if (!text) return "";
+// Add message with timestamp
+function addMessage(message, sender) {
+  const wrapper = document.createElement("div");
+  wrapper.className = sender === "user" ? "user-msg-wrapper" : "bot-msg-wrapper";
 
-  let formatted = text
-    .replace(/\r\n|\r|\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>")
-    .replace(/\|(.+?)\|/gs, (match) => {
-      const rows = match.trim().split("<br>").filter(r => r.trim());
-      const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c);
-        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
-      }).join("");
-      return `<table class="chat-table">${tableRows}</table>`;
-    });
+  const msgDiv = document.createElement("div");
+  msgDiv.className = sender === "user" ? "user-msg" : "bot-msg";
+  msgDiv.textContent = message;
 
-  return formatted;
+  const timeSpan = document.createElement("div");
+  timeSpan.className = "timestamp";
+  timeSpan.textContent = getTimestamp();
+
+  wrapper.appendChild(msgDiv);
+  wrapper.appendChild(timeSpan);
+
+  chatBox.appendChild(wrapper);
+  scrollChat();
+}
+
+// Typing indicator
+function showTyping() {
+  hideTyping();
+  const typing = document.createElement("div");
+  typing.id = "typing";
+  typing.className = "bot-msg-wrapper";
+
+  typing.innerHTML = `<div class="bot-msg">✦ Typing...</div>`;
+  chatBox.appendChild(typing);
+  scrollChat();
+}
+
+function hideTyping() {
+  const existing = document.getElementById("typing");
+  if (existing) existing.remove();
 }
 
 // Send message
-async function sendMessage() {
-  const userText = input.value.trim();
-  if (!userText) return;
-  input.value = "";
+function sendMessage() {
+  const message = userInput.value.trim();
+  if (!message) return;
 
-  // Check trained answers first
-  const trained = trainedAnswers[userText.toLowerCase()];
-  if (trained) {
-    appendMessage(userText, formatBotAnswer(trained));
-    return;
-  }
+  const lang = detectLanguage(message);
 
-  const botMsgElem = appendMessage(userText, null);
+  addMessage(message, "user");
+  showTyping();
 
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userText }),
-    });
-
-    const data = await res.json();
-    botMsgElem.innerHTML = formatBotAnswer(data.response);
-  } catch (err) {
-    botMsgElem.innerHTML = "🤖: Error connecting to backend.";
-    console.error(err);
-  }
+  ws.send(JSON.stringify({ message: message, lang: lang }));
+  userInput.value = "";
 }
 
-// ENTER = send, SHIFT+ENTER = newline
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+// Receive bot reply
+ws.onmessage = (event) => {
+  hideTyping();
+  const data = JSON.parse(event.data);
+
+  if (data.reply) addMessage(data.reply, "bot");
+};
+
+// Enter key sends message
+userInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
 });
