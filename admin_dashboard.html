@@ -1,30 +1,46 @@
-<button id="delete-all-btn" style="background:red;color:white;">🗑️ Delete All Data</button>
-<button id="export-json-btn" style="background:#ffc107;color:white;">💾 Export JSON</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🕌 Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🕌 Admin Dashboard</h1>
 
-<script>
-const deleteBtn = document.getElementById("delete-all-btn");
-const exportBtn = document.getElementById("export-json-btn");
+    <div class="dashboard-controls">
+      <button onclick="exportData()">📤 Export Training Data</button>
+      <input type="file" id="import-file" accept=".json,.csv">
+      <button onclick="importData()">📥 Import Training Data</button>
+      <input type="text" id="keyword" placeholder="Filter keyword">
+      <select id="lang-filter">
+        <option value="">All Languages</option>
+        <option value="en">English</option>
+        <option value="ms">Malay</option>
+        <option value="ar">Arabic</option>
+      </select>
+      <button onclick="filterData()">Filter</button>
+    </div>
 
-deleteBtn.addEventListener("click", async () => {
-  if (!confirm("⚠️ Are you sure you want to delete all training data?")) return;
-  const key = document.getElementById("admin-key").value.trim();
-  const res = await fetch(`${BASE_URL}/admin-delete?key=${key}`, { method: "DELETE" });
-  const data = await res.json();
-  alert(data.message);
-  location.reload();
-});
+    <h3>Training Data Overview</h3>
+    <table id="training-table" class="chat-table">
+      <thead>
+        <tr><th>Lang</th><th>Question</th><th>Answer</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-exportBtn.addEventListener("click", async () => {
-  const key = document.getElementById("admin-key").value.trim();
-  const res = await fetch(`${BASE_URL}/export-json?key=${key}`);
-  const data = await res.json();
-  const blob = new Blob([JSON.stringify(data.training_data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "training_data.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-});
-</script>
+    <h3>Analytics</h3>
+    <div class="charts">
+      <canvas id="langChart"></canvas>
+      <canvas id="lengthChart"></canvas>
+      <canvas id="freqChart"></canvas>
+    </div>
+  </div>
+
+<script src="admin_dashboard.js"></script>
+</body>
+</html>
