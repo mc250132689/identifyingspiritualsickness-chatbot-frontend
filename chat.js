@@ -1,94 +1,100 @@
+// Backend API URLs - adjust domain if needed
+const BASE = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const API_URL = `${BASE}/chat`;
+const ASSESS_URL = `${BASE}/assess`;
+const TRAIN_DATA_URL = `${BASE}/get-training-data`;
+
 const chatBox = document.getElementById("chat-box");
-const userInput = document.getElementById("user-input");
+const miniFeed = document.getElementById("mini-feed");
+const input = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
+const assessBtn = document.getElementById("assess-btn");
+const assessmentText = document.getElementById("assessment-text");
 
-// Detect user language (fallback: browser language)
-function detectLanguage(text) {
-  text = text.trim();
-  if (/[\u0600-\u06FF]/.test(text)) return "ar"; // Arabic script
-  if (/[\u4E00-\u9FFF]/.test(text)) return "zh"; // Chinese script just in case
-  if (/[\u0E80-\u0EFF]/.test(text)) return "ms"; // Malay Jawi (rare)
-  
-  // Browser language fallback
-  const lang = navigator.language || navigator.userLanguage;
-  if (lang.startsWith("ms")) return "ms";
-  if (lang.startsWith("ar")) return "ar";
-  return "en";
-}
+function appendMessage(userText, botText, isHtml=false) {
+  const container = document.createElement("div");
+  container.className = "message-pair";
 
-// WebSocket connection
-const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat");
+  const userMsg = document.createElement("div");
+  userMsg.className = "user-msg";
+  userMsg.textContent = userText;
+  container.appendChild(userMsg);
 
-// Create timestamp string
-function getTimestamp() {
-  const now = new Date();
-  return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
+  const botMsg = document.createElement("div");
+  botMsg.className = "bot-msg";
+  botMsg.innerHTML = isHtml ? botText : (botText || "Generating...");
+  container.appendChild(botMsg);
 
-// Auto-scroll chat to bottom
-function scrollChat() {
+  chatBox.appendChild(container);
   chatBox.scrollTop = chatBox.scrollHeight;
+  return botMsg;
 }
 
-// Add message with timestamp
-function addMessage(message, sender) {
-  const wrapper = document.createElement("div");
-  wrapper.className = sender === "user" ? "user-msg-wrapper" : "bot-msg-wrapper";
-
-  const msgDiv = document.createElement("div");
-  msgDiv.className = sender === "user" ? "user-msg" : "bot-msg";
-  msgDiv.textContent = message;
-
-  const timeSpan = document.createElement("div");
-  timeSpan.className = "timestamp";
-  timeSpan.textContent = getTimestamp();
-
-  wrapper.appendChild(msgDiv);
-  wrapper.appendChild(timeSpan);
-
-  chatBox.appendChild(wrapper);
-  scrollChat();
+function appendMiniFeed(text) {
+  const el = document.createElement("div");
+  el.style.padding = "6px 8px";
+  el.style.borderBottom = "1px solid #eef7f1";
+  el.textContent = `${new Date().toLocaleTimeString()} — ${text}`;
+  miniFeed.prepend(el);
+  while (miniFeed.childNodes.length > 50) miniFeed.removeChild(miniFeed.lastChild);
 }
 
-// Typing indicator
-function showTyping() {
-  hideTyping();
-  const typing = document.createElement("div");
-  typing.id = "typing";
-  typing.className = "bot-msg-wrapper";
-
-  typing.innerHTML = `<div class="bot-msg">✦ Typing...</div>`;
-  chatBox.appendChild(typing);
-  scrollChat();
+// Send chat message
+async function sendMessage() {
+  const userText = input.value.trim();
+  if (!userText) return;
+  input.value = "";
+  const botElem = appendMessage(`You: ${userText}`, null);
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({message: userText})
+    });
+    const data = await res.json();
+    botElem.innerHTML = data.response;
+    appendMiniFeed(`Q: ${userText}`);
+  } catch (err) {
+    botElem.innerHTML = "Error connecting to backend.";
+    console.error(err);
+  }
 }
 
-function hideTyping() {
-  const existing = document.getElementById("typing");
-  if (existing) existing.remove();
+// Run assessment
+async function runAssessment() {
+  const text = assessmentText.value.trim();
+  if (!text) return alert("Please describe symptoms for assessment.");
+  const respElem = appendMessage(`Assessment: ${text}`, "Running assessment...");
+  try {
+    const res = await fetch(ASSESS_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({text})
+    });
+    const data = await res.json();
+    if (data.result) {
+      const plan = data.result.ruqyah_plan.replace(/\n/g, "<br>");
+      respElem.innerHTML = `<strong>Assessment:</strong> Probable: ${data.result.assessment.probable.join(", ")}<br><br><strong>Plan:</strong><br>${plan}`;
+      appendMiniFeed("New assessment run");
+    } else {
+      respElem.innerHTML = "No result from assessment.";
+    }
+  } catch (err) {
+    respElem.innerHTML = "Error running assessment.";
+    console.error(err);
+  }
 }
 
-// Send message
-function sendMessage() {
-  const message = userInput.value.trim();
-  if (!message) return;
+// Wire buttons
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", (e)=>{ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }});
+assessBtn.addEventListener("click", runAssessment);
 
-  const lang = detectLanguage(message);
-
-  addMessage(message, "user");
-  showTyping();
-
-  ws.send(JSON.stringify({ message: message, lang: lang }));
-  userInput.value = "";
+// Load initial mini-feed (last few chats) - just request the training endpoint publicly is protected
+async function loadRecent() {
+  try {
+    const res = await fetch("/get-recent-cache.json"); // optional local cache - may not exist
+    // ignore if fails
+  } catch(e){}
 }
-
-// Receive bot reply
-ws.onmessage = (event) => {
-  hideTyping();
-  const data = JSON.parse(event.data);
-
-  if (data.reply) addMessage(data.reply, "bot");
-};
-
-// Enter key sends message
-userInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
+loadRecent();
