@@ -1,8 +1,7 @@
 let trainingData = [];
 const tableBody = document.querySelector("#training-table tbody");
-const keywordInput = document.getElementById("keyword");
-const langFilter = document.getElementById("lang-filter");
 
+// Load data from backend
 async function loadTrainingData() {
   const res = await fetch("http://127.0.0.1:8000/get-training-data");
   const data = await res.json();
@@ -11,6 +10,7 @@ async function loadTrainingData() {
   renderCharts(trainingData);
 }
 
+// Render table
 function renderTable(data) {
   tableBody.innerHTML = "";
   data.forEach(item => {
@@ -20,6 +20,37 @@ function renderTable(data) {
   });
 }
 
+// Filter table
+function filterTable() {
+  const keyword = document.getElementById("keyword").value.toLowerCase();
+  const lang = document.getElementById("lang-filter").value;
+  const filtered = trainingData.filter(item =>
+    (!lang || item.lang === lang) &&
+    (item.question.toLowerCase().includes(keyword) || item.answer.toLowerCase().includes(keyword))
+  );
+  renderTable(filtered);
+  renderCharts(filtered);
+}
+
+// Add new training data
+document.getElementById("trainForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const lang = document.getElementById("new-lang").value;
+  const question = document.getElementById("new-question").value;
+  const answer = document.getElementById("new-answer").value;
+
+  const res = await fetch("http://127.0.0.1:8000/add-training", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lang, question, answer })
+  });
+  const result = await res.json();
+  document.getElementById("trainMessage").innerText = result.message;
+  loadTrainingData();
+  e.target.reset();
+});
+
+// Charts
 function renderCharts(data) {
   const langCtx = document.getElementById("langChart").getContext("2d");
   const lenCtx = document.getElementById("lengthChart").getContext("2d");
@@ -38,53 +69,24 @@ function renderCharts(data) {
 
   new Chart(langCtx, {
     type: 'pie',
-    data: {
-      labels: Object.keys(langCount),
-      datasets: [{
-        data: Object.values(langCount),
-        backgroundColor: ['#1abc9c','#16a085','#27ae60']
-      }]
-    },
+    data: { labels: Object.keys(langCount), datasets: [{ data: Object.values(langCount), backgroundColor: ['#1abc9c','#16a085','#27ae60'] }] },
     options: { responsive: true, plugins: { title: { display: true, text: 'Language Distribution' } } }
   });
 
   new Chart(lenCtx, {
     type: 'bar',
-    data: {
-      labels: data.map((_, i) => i+1),
-      datasets: [
-        { label: 'Q length', data: qLen, backgroundColor: '#1abc9c' },
-        { label: 'A length', data: aLen, backgroundColor: '#16a085' }
-      ]
-    },
+    data: { labels: data.map((_, i) => i+1), datasets: [{ label: 'Q length', data: qLen, backgroundColor: '#1abc9c' }, { label: 'A length', data: aLen, backgroundColor: '#16a085' }] },
     options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: 'Q/A Length Distribution' } } }
   });
 
   new Chart(freqCtx, {
     type: 'bar',
-    data: {
-      labels: Object.keys(freqMap),
-      datasets: [{
-        label: 'Frequency',
-        data: Object.values(freqMap),
-        backgroundColor: '#27ae60'
-      }]
-    },
+    data: { labels: Object.keys(freqMap), datasets: [{ label: 'Frequency', data: Object.values(freqMap), backgroundColor: '#27ae60' }] },
     options: { responsive: true, plugins: { title: { display: true, text: 'Question Frequency' } }, scales: { y: { beginAtZero: true } } }
   });
 }
 
-function filterData() {
-  const keyword = keywordInput.value.toLowerCase();
-  const lang = langFilter.value;
-  const filtered = trainingData.filter(item =>
-    (!lang || item.lang === lang) &&
-    (item.question.toLowerCase().includes(keyword) || item.answer.toLowerCase().includes(keyword))
-  );
-  renderTable(filtered);
-  renderCharts(filtered);
-}
-
+// Export & Import
 function exportData() {
   const dataStr = JSON.stringify(trainingData, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
@@ -118,5 +120,17 @@ function importData() {
   reader.readAsText(file);
 }
 
-// Load data on page load
+// Tabs
+function openTab(evt, tabName) {
+  const tabcontent = document.querySelectorAll(".tabcontent");
+  tabcontent.forEach(tc => tc.style.display = "none");
+
+  const tablinks = document.querySelectorAll(".tablink");
+  tablinks.forEach(tl => tl.classList.remove("active"));
+
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.classList.add("active");
+}
+
+// Load data initially
 loadTrainingData();
