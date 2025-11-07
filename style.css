@@ -1,25 +1,72 @@
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(145deg, #eaf6f6, #d9f0e0);
+  font-family: "Segoe UI", sans-serif;
+  background: #eafaf1;
+  color: #1b3b2d;
   margin: 0;
   padding: 0;
-  color: #333;
 }
 
 .container {
-  max-width: 700px;
-  margin: 50px auto;
-  background: #fff;
-  padding: 20px 25px;
-  border-radius: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  border-top: 4px solid #1abc9c;
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
 }
 
-h1 {
+h1, h3 {
   text-align: center;
-  color: #145a32;
+  color: #1abc9c;
 }
+
+.chat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.chat-table th, .chat-table td {
+  border: 1px solid #16a085;
+  padding: 8px;
+  text-align: left;
+}
+
+.chat-table th {
+  background-color: #1abc9c;
+  color: #fff;
+}
+
+button {
+  background-color: #16a085;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #1abc9c;
+}
+
+input, select {
+  padding: 8px;
+  margin: 5px;
+  border-radius: 5px;
+  border: 1px solid #16a085;
+}
+
+.charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+canvas {
+  max-width: 100%;
+  height: 300px;
+}
+
 
 #chat-box {
   max-height: 400px;
