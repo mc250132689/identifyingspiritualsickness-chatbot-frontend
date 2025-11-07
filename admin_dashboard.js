@@ -1,6 +1,18 @@
 let trainingData = [];
 const tableBody = document.querySelector("#training-table tbody");
 
+// WebSocket for live updates
+const ws = new WebSocket("ws://127.0.0.1:8000/ws/admin");
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === "chat" || data.type === "update") {
+    loadTrainingData(); // refresh table when new chat or training occurs
+  }
+  if (data.type === "delete") {
+    loadTrainingData();
+  }
+};
+
 // Load data from backend
 async function loadTrainingData() {
   const res = await fetch("http://127.0.0.1:8000/get-training-data");
@@ -39,14 +51,13 @@ document.getElementById("trainForm").addEventListener("submit", async (e) => {
   const question = document.getElementById("new-question").value;
   const answer = document.getElementById("new-answer").value;
 
-  const res = await fetch("http://127.0.0.1:8000/add-training", {
+  const res = await fetch("http://127.0.0.1:8000/train", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lang, question, answer })
   });
   const result = await res.json();
   document.getElementById("trainMessage").innerText = result.message;
-  loadTrainingData();
   e.target.reset();
 });
 
@@ -103,12 +114,9 @@ function importData() {
   const reader = new FileReader();
   reader.onload = async function(e) {
     let importedData;
-    try {
-      importedData = JSON.parse(e.target.result);
-    } catch {
-      return alert("Invalid JSON file!");
-    }
-    const res = await fetch("http://127.0.0.1:8000/import-training", {
+    try { importedData = JSON.parse(e.target.result); }
+    catch { return alert("Invalid JSON file!"); }
+    const res = await fetch("http://127.0.0.1:8000/train", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(importedData)
@@ -132,5 +140,5 @@ function openTab(evt, tabName) {
   evt.currentTarget.classList.add("active");
 }
 
-// Load data initially
+// Initial load
 loadTrainingData();
