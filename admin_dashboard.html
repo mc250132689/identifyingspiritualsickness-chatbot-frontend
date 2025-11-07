@@ -11,33 +11,66 @@
   <div class="container">
     <h1>🕌 Admin Dashboard</h1>
 
-    <div class="dashboard-controls">
-      <button onclick="exportData()">📤 Export Training Data</button>
-      <input type="file" id="import-file" accept=".json,.csv">
-      <button onclick="importData()">📥 Import Training Data</button>
-      <input type="text" id="keyword" placeholder="Filter keyword">
-      <select id="lang-filter">
-        <option value="">All Languages</option>
-        <option value="en">English</option>
-        <option value="ms">Malay</option>
-        <option value="ar">Arabic</option>
-      </select>
-      <button onclick="filterData()">Filter</button>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tablink active" onclick="openTab(event, 'viewData')">View Data</button>
+      <button class="tablink" onclick="openTab(event, 'trainData')">Train</button>
+      <button class="tablink" onclick="openTab(event, 'analytics')">Analytics</button>
     </div>
 
-    <h3>Training Data Overview</h3>
-    <table id="training-table" class="chat-table">
-      <thead>
-        <tr><th>Lang</th><th>Question</th><th>Answer</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <!-- Tab: View Data -->
+    <div id="viewData" class="tabcontent" style="display: block;">
+      <h3>Training Data</h3>
+      <div class="filter-controls">
+        <input type="text" id="keyword" placeholder="Search keyword">
+        <select id="lang-filter">
+          <option value="">All Languages</option>
+          <option value="en">English</option>
+          <option value="ms">Malay</option>
+          <option value="ar">Arabic</option>
+        </select>
+        <button onclick="filterTable()">Filter</button>
+      </div>
+      <table id="training-table" class="chat-table">
+        <thead>
+          <tr><th>Lang</th><th>Question</th><th>Answer</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <h3>Analytics</h3>
-    <div class="charts">
-      <canvas id="langChart"></canvas>
-      <canvas id="lengthChart"></canvas>
-      <canvas id="freqChart"></canvas>
+    <!-- Tab: Train Data -->
+    <div id="trainData" class="tabcontent">
+      <h3>Add Training Data</h3>
+      <form id="trainForm">
+        <label>Language</label>
+        <select id="new-lang" required>
+          <option value="en">English</option>
+          <option value="ms">Malay</option>
+          <option value="ar">Arabic</option>
+        </select>
+        <label>Question</label>
+        <input type="text" id="new-question" required>
+        <label>Answer</label>
+        <input type="text" id="new-answer" required>
+        <button type="submit">Add</button>
+      </form>
+      <div id="trainMessage"></div>
+    </div>
+
+    <!-- Tab: Analytics -->
+    <div id="analytics" class="tabcontent">
+      <h3>Analytics & Export/Import</h3>
+      <div class="dashboard-controls">
+        <button onclick="exportData()">📤 Export Data</button>
+        <input type="file" id="import-file" accept=".json,.csv">
+        <button onclick="importData()">📥 Import Data</button>
+      </div>
+      <div class="charts">
+        <canvas id="langChart"></canvas>
+        <canvas id="lengthChart"></canvas>
+        <canvas id="freqChart"></canvas>
+      </div>
     </div>
   </div>
 
