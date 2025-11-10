@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Training Data Viewer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -22,7 +23,7 @@
     }
     #controls { max-width: 900px; margin: 10px auto; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     #training-container { max-width: 900px; margin: 20px auto; }
-    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; }
+    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; white-space: pre-wrap; padding:10px; }
     .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; white-space: pre-wrap; }
     .train-user-msg { align-self: flex-end; background-color: #d1e7ff; }
     .train-bot-msg { align-self: flex-start; background-color: #e2e2e2; }
@@ -82,8 +83,22 @@
         trainingData = data.training_data.reverse();
         displayData(trainingData);
         updateStatus();
+        // also cache locally
+        localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData));
       } catch (err) {
-        container.innerHTML = "Error loading data.";
+        // fallback to cache
+        const cached = localStorage.getItem('trained_answers_cache');
+        if (cached) {
+          try {
+            trainingData = JSON.parse(cached).reverse();
+            displayData(trainingData);
+            updateStatus();
+          } catch (e) {
+            container.innerHTML = "Error loading data.";
+          }
+        } else {
+          container.innerHTML = "Error loading data.";
+        }
       }
     }
 
@@ -152,8 +167,8 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
+        const dataBuf = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(dataBuf, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(sheet);
@@ -184,13 +199,13 @@
           }
 
           try {
+            // only send allowed fields expected by server
             await fetch(TRAIN_API_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 question: item.question,
-                answer: item.answer,
-                lang: item.lang || "en"
+                answer: item.answer
               }),
             });
           } catch (err) {
@@ -202,6 +217,8 @@
         updateStatus();
         statusImport.textContent = `Added: ${added}, Updated: ${updated}, Skipped: ${skipped}`;
         alert(`✅ Import complete!\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`);
+        // update local cache
+        localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData.reverse()));
       };
       reader.readAsArrayBuffer(file);
     });
