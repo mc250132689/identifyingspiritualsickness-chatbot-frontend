@@ -38,6 +38,10 @@
     #export-feedback-btn { background:#ef4444; color:white; }
     #export-feedback-btn:hover { background:#b91c1c; }
 
+    /* NEW BUTTON FOR FEEDBACK ANALYSIS */
+    #feedback-analysis-btn { background:#0d9488; color:white; }
+    #feedback-analysis-btn:hover { background:#0f766e; }
+
     pre { background:#f6f6f9;padding:10px;border-radius:8px; max-height:200px; overflow:auto; }
 
     /* Animated dots */
@@ -97,6 +101,7 @@
         <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
         <button id="export-data-btn">⬇️ Export Training JSON</button>
         <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
+        <button id="feedback-analysis-btn" onclick="window.location.href='feedback_analysis.html'">📊 Feedback Analysis</button>
       </div>
 
       <div style="margin-top:16px">
@@ -116,22 +121,19 @@
   const dashboard = document.getElementById("dashboard");
   const statusText = document.getElementById("login-status");
 
-  // Animated dots helper
   function animatedDots(text) {
     return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
   }
 
-  // Function to check if server is awake
   async function checkServerAlive() {
     statusText.innerHTML = animatedDots("⏳ Checking server status");
     try {
       const res = await fetch(`${BASE_URL}/ping`);
-      if (!res.ok) throw new Error("Server not responding");
+      if (!res.ok) throw new Error("Server offline");
       statusText.textContent = "✅ Server is online!";
       return true;
     } catch (err) {
-      statusText.innerHTML = animatedDots("⚠️ Server is sleeping. Waking up");
-      console.log(err);
+      statusText.innerHTML = animatedDots("⚠️ Server sleeping, waking up");
       await new Promise(r => setTimeout(r, 3000));
       return checkServerAlive();
     }
@@ -140,21 +142,13 @@
   async function attemptLogin() {
     const key = adminKeyInput.value.trim();
     if (!key) return alert("Please enter admin key");
-
     await checkServerAlive();
-
     statusText.textContent = animatedDots("⏳ Logging in");
 
     try {
       const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
-      if (!res.ok) throw new Error("Backend unreachable");
       const data = await res.json();
-
-      if (data.error) {
-        statusText.textContent = "❌ Unauthorized Admin Key!";
-        return;
-      }
-
+      if (data.error) return statusText.textContent = "❌ Invalid Admin Key";
       loginSection.style.display = "none";
       dashboard.style.display = "block";
 
@@ -162,79 +156,56 @@
       document.getElementById("hadith-count").textContent = data.hadith_count;
       document.getElementById("feedback-count").textContent = data.feedback_count;
 
-      const recentEl = document.getElementById("recent-list");
-      recentEl.innerHTML = "";
-      (data.recent_records || []).slice().reverse().forEach(r => {
+      const recent = document.getElementById("recent-list");
+      recent.innerHTML = "";
+      data.recent_records?.slice().reverse().forEach(r => {
         const d = document.createElement("div");
         d.className = "small";
         d.textContent = `${(r.lang||'en').toUpperCase()} - ${r.question || r.answer}`;
-        recentEl.appendChild(d);
+        recent.appendChild(d);
       });
 
-      const topQ = document.getElementById("top-questions");
-      topQ.innerHTML = "";
-      (data.top_questions || []).forEach(q => {
+      const top = document.getElementById("top-questions");
+      top.innerHTML = "";
+      data.top_questions?.forEach(q => {
         const d = document.createElement("div");
         d.className = "small";
         d.textContent = q;
-        topQ.appendChild(d);
+        top.appendChild(d);
       });
 
       const he = document.getElementById("hadith-examples");
       he.innerHTML = "";
-      (data.hadith_examples || []).forEach(h => {
+      data.hadith_examples?.forEach(h => {
         const p = document.createElement("pre");
         p.textContent = JSON.stringify(h, null, 2);
         he.appendChild(p);
       });
 
-    } catch (err) {
-      statusText.textContent = "⚠️ Error: Could not connect to server.";
-      console.log(err);
-    }
+    } catch (err) { statusText.textContent = "⚠️ Error connecting to server."; }
   }
 
   loginBtn.addEventListener("click", attemptLogin);
+  adminKeyInput.addEventListener("keydown", e => { if (e.key==="Enter") attemptLogin(); });
 
-  adminKeyInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      attemptLogin();
-    }
-  });
-
-  // Export JSON buttons
   document.getElementById("export-data-btn").addEventListener("click", async () => {
-    const key = adminKeyInput.value.trim() || prompt("Enter admin key to export:");
-    if (!key) return;
-    try {
-      const res = await fetch(`${BASE_URL}/export-training-data`);
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "training_data_export.json"; a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("Failed to export.");
-    }
+    const res = await fetch(`${BASE_URL}/export-training-data`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "training_data_export.json"; a.click();
+    URL.revokeObjectURL(url);
   });
 
   document.getElementById("export-feedback-btn").addEventListener("click", async () => {
-    const key = adminKeyInput.value.trim() || prompt("Enter admin key to export feedback:");
+    const key = adminKeyInput.value.trim() || prompt("Enter admin key:");
     if (!key) return;
-    try {
-      const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(key)}`);
-      if (!res.ok) throw new Error("unauth");
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "feedback_export.json"; a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("Failed to export feedback (check admin key).");
-    }
+    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(key)}`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "feedback_export.json"; a.click();
+    URL.revokeObjectURL(url);
   });
 
 </script>
