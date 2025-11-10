@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
-    h1 { text-align: center; }
+    body { font-family: Arial, sans-serif; background: #f0f5f4; padding: 20px; color:#1b3b3a; }
+    h1 { text-align: center; color: #14532d; }
     .admin-container { max-width: 900px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #007bff; color: white; padding: 20px; border-radius: 10px; text-align: center; }
-    .small { font-size: 13px; color: #eef; }
+    .stat-card { background: #10b981; color: white; padding: 20px; border-radius: 10px; text-align: center; }
+    .small { font-size: 13px; color: #064e3b; }
 
     #login-section { text-align: center; margin-top: 40px; }
     input, button { padding: 10px; margin: 5px; font-size: 16px; }
@@ -21,17 +21,36 @@
     .btn-row {
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 20px;
       margin-top: 20px;
     }
 
-    #train-btn { background: #28a745; color: white; }
-    #train-btn:hover { background: #218838; }
+    #train-btn { background: #2563eb; color: white; }
+    #train-btn:hover { background: #1e40af; }
 
-    #view-train-btn { background: #17a2b8; color: white; }
-    #view-train-btn:hover { background: #117a8b; }
+    #view-train-btn { background: #8b5cf6; color: white; }
+    #view-train-btn:hover { background: #6d28d9; }
+
+    #export-data-btn { background:#f59e0b; color:white; }
+    #export-data-btn:hover { background:#b45309; }
+
+    #export-feedback-btn { background:#ef4444; color:white; }
+    #export-feedback-btn:hover { background:#b91c1c; }
 
     pre { background:#f6f6f9;padding:10px;border-radius:8px; max-height:200px; overflow:auto; }
+
+    /* Animated dots */
+    .dots span {
+      animation: blink 1s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 20% { opacity: 0; }
+      50%, 100% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -76,8 +95,8 @@
       <div class="btn-row">
         <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
         <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
-        <button id="export-data-btn" class="btn">⬇️ Export Training JSON</button>
-        <button id="export-feedback-btn" class="btn secondary">⬇️ Export Feedback (Admin)</button>
+        <button id="export-data-btn">⬇️ Export Training JSON</button>
+        <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
       </div>
 
       <div style="margin-top:16px">
@@ -97,15 +116,37 @@
   const dashboard = document.getElementById("dashboard");
   const statusText = document.getElementById("login-status");
 
+  // Animated dots helper
+  function animatedDots(text) {
+    return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+  }
+
+  // Function to check if server is awake
+  async function checkServerAlive() {
+    statusText.innerHTML = animatedDots("⏳ Checking server status");
+    try {
+      const res = await fetch(`${BASE_URL}/ping`);
+      if (!res.ok) throw new Error("Server not responding");
+      statusText.textContent = "✅ Server is online!";
+      return true;
+    } catch (err) {
+      statusText.innerHTML = animatedDots("⚠️ Server is sleeping. Waking up");
+      console.log(err);
+      await new Promise(r => setTimeout(r, 3000));
+      return checkServerAlive();
+    }
+  }
+
   async function attemptLogin() {
     const key = adminKeyInput.value.trim();
     if (!key) return alert("Please enter admin key");
 
-    statusText.textContent = "⏳ Connecting to server...";
+    await checkServerAlive();
+
+    statusText.textContent = animatedDots("⏳ Logging in");
 
     try {
       const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
-
       if (!res.ok) throw new Error("Backend unreachable");
       const data = await res.json();
 
@@ -148,14 +189,13 @@
       });
 
     } catch (err) {
-      statusText.textContent = "⚠️ Error: Server is sleeping or offline. Try again soon.";
+      statusText.textContent = "⚠️ Error: Could not connect to server.";
       console.log(err);
     }
   }
 
   loginBtn.addEventListener("click", attemptLogin);
 
-  // Allow ENTER key to submit admin key (faster login)
   adminKeyInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -163,7 +203,7 @@
     }
   });
 
-  // Export JSON
+  // Export JSON buttons
   document.getElementById("export-data-btn").addEventListener("click", async () => {
     const key = adminKeyInput.value.trim() || prompt("Enter admin key to export:");
     if (!key) return;
