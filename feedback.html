@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Feedback - Identifying Spiritual Sickness Chatbot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <header style="align-items:flex-start">
+        <div class="brand">✍️</div>
+        <div>
+          <h1>Feedback Form</h1>
+          <div style="font-size:13px;color:#4b6960">Please fill this short feedback to help improve the chatbot.</div>
+        </div>
+        <div style="margin-left:auto">
+          <a href="chat.html" class="btn small">← Back to Chat</a>
+        </div>
+      </header>
+
+      <form id="feedback-form">
+        <h3>Section 1: Participant Information</h3>
+        <input id="name" placeholder="Name" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <input id="student_id" placeholder="Student ID" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <input id="program" placeholder="Program/Faculty" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <h3>Section 2: Chatbot usability</h3>
+        <label>4. How easy was it to interact with the chatbot?</label>
+        <input id="q4" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <label>5. Were the chatbot's instructions clear?</label>
+        <input id="q5" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <label>6. Any difficulties or issues encountered while using the chatbot?</label>
+        <input id="q6" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <h3>Section 3: Relevance and accuracy</h3>
+        <label>7. How relevant were responses?</label>
+        <input id="q7" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <label>8. How accurate do you feel the chatbot's guidance was?</label>
+        <input id="q8" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <label>9. Any incorrect or misleading responses noticed?</label>
+        <input id="q9" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <h3>Section 4: Helpfulness</h3>
+        <label>10. How helpful was the chatbot in providing answers based on Islamic practices?</label>
+        <input id="q10" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <label>11. Would you consider using this chatbot regularly for spiritual guidance answers?</label>
+        <input id="q11" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <label>12. Suggestions to improve the chatbot?</label>
+        <input id="q12" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+
+        <h3>Section 5: Overall experience</h3>
+        <label>13. Overall, how satisfied are you with the chatbot?</label>
+        <input id="q13" placeholder="Answer" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+        <label>14. Any additional comments or feedback?</label>
+        <textarea id="q14" placeholder="Any additional comments..." style="width:100%;min-height:100px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
+
+        <div style="margin-top:12px;text-align:right">
+          <button type="submit" class="btn">Submit Feedback</button>
+        </div>
+        <p id="feedback-status" class="small"></p>
+      </form>
+    </div>
+  </div>
+
+<script src="feedback.js"></script>
+</body>
+</html>
