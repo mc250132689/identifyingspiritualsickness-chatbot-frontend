@@ -1,51 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>📊 Feedback Analysis</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<style>
-  body{font-family:Arial,sans-serif;background:#f0f5f4;color:#1b3b3a;padding:20px;}
-  h1,h2,h3{color:#14532d;text-align:center;}
-  #summary-box{background:#f4faf8;border:1px solid #b9d8cf;padding:15px;margin:20px 0;border-radius:6px;}
-  #charts-container{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
-  canvas{background:#fff;border-radius:8px;padding:10px;}
-  @media(max-width:700px){#charts-container{grid-template-columns:1fr;}}
-  table{width:100%;border-collapse:collapse;margin-top:15px;}
-  th,td{border:1px solid #ccc;padding:8px;font-size:14px;}
-  th{background:#dfe8e6;}
-  #export-pdf-btn{background:#6b7280;color:white;padding:12px 20px;border-radius:8px;cursor:pointer;margin:20px auto;display:block;}
-  #export-pdf-btn:hover{background:#4b5563;}
-</style>
+  <meta charset="UTF-8">
+  <title>Feedback - Identifying Spiritual Sickness Chatbot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="container">
+    <div class="card">
+      <header class="card-header">
+        <div class="brand">✍️</div>
+        <div>
+          <h1>Feedback Form</h1>
+          <div class="subheading">Please fill this short feedback to help improve the chatbot.</div>
+        </div>
+        <div class="header-btn">
+          <a href="chat.html" class="btn small">← Back to Chat</a>
+        </div>
+      </header>
 
-<h1>📊 Feedback Analysis</h1>
+      <form id="feedback-form">
+        <h3>Section 1: Participant Information</h3>
+        <input id="name" placeholder="Name" />
+        <input id="student_id" placeholder="Student ID" />
+        <input id="program" placeholder="Program/Faculty" />
 
-<div id="summary-box">
-  <p><strong>Total Feedback:</strong> <span id="total-count">0</span></p>
-  <p><strong>Average Satisfaction Score (Q8):</strong> <span id="avg-score">-</span> / 5</p>
-  <p><strong>Most Common Keywords:</strong> <span id="keywords">Loading...</span></p>
-</div>
+        <h3>Section 2: Chatbot usability</h3>
+        <label>4. How easy was it to interact with the chatbot?</label>
+        <select id="q4">
+          <option value="">Select</option>
+          <option value="Very easy">Very easy</option>
+          <option value="Easy">Easy</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Difficult">Difficult</option>
+          <option value="Very difficult">Very difficult</option>
+        </select>
 
-<div id="charts-container"></div>
+        <label>5. Were the chatbot's instructions clear?</label>
+        <select id="q5">
+          <option value="">Select</option>
+          <option value="Very clear">Very clear</option>
+          <option value="Clear">Clear</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Unclear">Unclear</option>
+          <option value="Very unclear">Very unclear</option>
+        </select>
 
-<button id="export-pdf-btn">📄 Export PDF Report</button>
+        <label>6. Any difficulties or issues encountered while using the chatbot?</label>
+        <select id="q6">
+          <option value="">Select</option>
+          <option value="No difficulties">No difficulties</option>
+          <option value="Minor difficulties">Minor difficulties</option>
+          <option value="Major difficulties">Major difficulties</option>
+        </select>
 
-<h3>All Feedback Records</h3>
-<table id="feedback-table">
-<thead>
-<tr>
-<th>Name</th><th>Student ID</th><th>Program</th><th>Experience Score (Q8)</th><th>Most Mentioned Issue</th><th>Comments</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-<script src="feedback_analysis.js"></script>
+        <h3>Section 3: Relevance and accuracy</h3>
+        <label>7. How relevant were responses?</label>
+        <select id="q7">
+          <option value="">Select</option>
+          <option value="Very relevant">Very relevant</option>
+          <option value="Relevant">Relevant</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Irrelevant">Irrelevant</option>
+          <option value="Very irrelevant">Very irrelevant</option>
+        </select>
+
+        <label>8. How accurate do you feel the chatbot's guidance was?</label>
+        <select id="q8">
+          <option value="">Select</option>
+          <option value="Very accurate">Very accurate</option>
+          <option value="Accurate">Accurate</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Inaccurate">Inaccurate</option>
+          <option value="Very inaccurate">Very inaccurate</option>
+        </select>
+
+        <label>9. Any incorrect or misleading responses noticed?</label>
+        <select id="q9">
+          <option value="">Select</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+
+        <h3>Section 4: Helpfulness</h3>
+        <label>10. How helpful was the chatbot in providing answers based on Islamic practices?</label>
+        <select id="q10">
+          <option value="">Select</option>
+          <option value="Very helpful">Very helpful</option>
+          <option value="Helpful">Helpful</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Not helpful">Not helpful</option>
+          <option value="Very unhelpful">Very unhelpful</option>
+        </select>
+
+        <label>11. Would you consider using this chatbot regularly for spiritual guidance answers?</label>
+        <select id="q11">
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label>12. Suggestions to improve the chatbot?</label>
+        <textarea id="q12" placeholder="Suggestions..."></textarea>
+
+        <h3>Section 5: Overall experience</h3>
+        <label>13. Overall, how satisfied are you with the chatbot?</label>
+        <select id="q13">
+          <option value="">Select</option>
+          <option value="Very satisfied">Very satisfied</option>
+          <option value="Satisfied">Satisfied</option>
+          <option value="Neutral">Neutral</option>
+          <option value="Dissatisfied">Dissatisfied</option>
+          <option value="Very dissatisfied">Very dissatisfied</option>
+        </select>
+
+        <label>14. Any additional comments or feedback?</label>
+        <textarea id="q14" placeholder="Any additional comments..."></textarea>
+
+        <div class="form-footer">
+          <button type="submit" class="btn">Submit Feedback</button>
+        </div>
+        <p id="feedback-status" class="small"></p>
+      </form>
+    </div>
+  </div>
+
+<script src="feedback.js"></script>
 </body>
 </html>
