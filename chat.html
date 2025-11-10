@@ -1,31 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>🕋 Identifying Spiritual Sickness Chatbot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Spiritual Sickness Chatbot</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <header>
-        <div class="brand">﷽</div>
-        <div>
-          <h1>Identifying Spiritual Sickness Chatbot</h1>
-          <div style="font-size:13px;color:#4b6960">Answers using Quran, Sahih Hadith & valid ruqyah practices</div>
-        </div>
-      </header>
 
-      <div id="chat-box"></div>
+<div class="container">
 
-      <div class="input-container">
-        <input type="text" id="user-input" placeholder="Type your message... (Enter to send, Shift+Enter for newline)">
-        <button id="send-btn">Send</button>
-      </div>
-    </div>
-  </div>
+  <h2>🕌 Identifying Spiritual Sickness Chatbot</h2>
 
-  <script src="chat.js"></script>
+  <div id="chat-box"></div>
+
+  <input id="user-input" placeholder="Ask something..." autocomplete="off">
+  <button onclick="sendMessage()">Send</button>
+
+  <hr>
+
+  <button class="feedback-btn" onclick="toggleFeedback()">Submit Feedback</button>
+
+  <form id="feedback-form" style="display:none" onsubmit="sendFeedback(event)">
+    <h3>User Feedback</h3>
+    
+    <label>Name</label><input name="name">
+    <label>Student ID</label><input name="student_id">
+    <label>Program/Faculty</label><input name="program">
+
+    <label>How easy was it to interact?</label><input name="ease">
+
+    <label>Were instructions clear?</label><input name="clarity">
+
+    <label>Any difficulties?</label><textarea name="difficulties"></textarea>
+
+    <label>Relevance of answers?</label><input name="relevance">
+
+    <label>Accuracy of guidance?</label><input name="accuracy">
+
+    <label>Incorrect responses?</label><textarea name="incorrect"></textarea>
+
+    <label>Helpfulness</label><input name="helpfulness">
+
+    <label>Use regularly?</label><input name="reuse">
+
+    <label>Suggestions</label><textarea name="suggestions"></textarea>
+
+    <label>Overall satisfaction</label><input name="satisfaction">
+
+    <label>Additional comments</label><textarea name="comments"></textarea>
+
+    <button type="submit">Submit</button>
+  </form>
+
+</div>
+
+<script src="chat.js"></script>
 </body>
 </html>
