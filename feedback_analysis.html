@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>📊 Feedback Analysis</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
+
+<style>
+  table { width:100%; border-collapse:collapse; margin-top:15px; }
+  th, td { border:1px solid #ccc; padding:8px; font-size:14px; }
+  th { background:#dfe8e6; }
+  #summary-box { background:#f4faf8; border:1px solid #b9d8cf; padding:15px; margin-top:20px; border-radius:6px; }
+</style>
+
+</head>
+<body>
+<div class="container">
+<div class="card">
+
+<header style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+  <h2>📊 Feedback Analysis</h2>
+  <a class="btn" href="admin_dashboard.html">← Back to Dashboard</a>
+</header>
+
+<div id="summary-box">
+  <p><strong>Total Feedback:</strong> <span id="total-count">0</span></p>
+  <p><strong>Average Satisfaction Score (Q8):</strong> <span id="avg-score">-</span> / 5</p>
+  <p><strong>Most Common Keywords:</strong> <span id="keywords">Loading...</span></p>
+</div>
+
+<h3 style="margin-top:25px;">All Feedback Records</h3>
+
+<table id="feedback-table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Student ID</th>
+<th>Program</th>
+<th>Experience Score (Q8)</th>
+<th>Most Mentioned Issue</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</div>
+</div>
+
+<script src="feedback_analysis.js"></script>
+</body>
+</html>
