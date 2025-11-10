@@ -3,15 +3,14 @@ const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
-// Format answer for chat display, preserving spacing, paragraphs, bold/italic, and tables
 function formatAnswer(text) {
   if (!text) return "";
   let formatted = text
-    .replace(/\r\n|\r|\n/g, "<br>") // preserve line breaks
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // bold
-    .replace(/\*(.*?)\*/g, "<em>$1</em>") // italic
-    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>") // headings
-    .replace(/\|(.+?)\|/gs, (match) => { // tables
+    .replace(/\r\n|\r|\n/g, "<br>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
+    .replace(/\|(.+?)\|/gs, (match) => {
       const rows = match.trim().split("<br>").filter(r => r.trim());
       const tableRows = rows.map(row => {
         const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
@@ -67,9 +66,16 @@ form.addEventListener("submit", async (e) => {
     preview.appendChild(pair);
     preview.scrollTop = preview.scrollHeight;
 
-    // Update in-memory chat trained answers immediately
-    if (window.chatAddTrainedAnswer) {
-      window.chatAddTrainedAnswer(question, answer);
+    // Update local trained answers cache
+    try {
+      const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
+      cached.push({ question, answer, lang: 'en' });
+      localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
+      if (window.chatAddTrainedAnswer) {
+        window.chatAddTrainedAnswer(question, answer);
+      }
+    } catch (e) {
+      console.warn(e);
     }
 
   } catch (err) {
