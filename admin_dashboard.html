@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard - Identifying Spiritual Sickness Chatbot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
@@ -11,7 +12,7 @@
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
     .stat-card { background: #007bff; color: white; padding: 20px; border-radius: 10px; text-align: center; }
 
-    #login-section { text-align: center; margin-top: 100px; }
+    #login-section { text-align: center; margin-top: 40px; }
     input, button { padding: 10px; margin: 5px; font-size: 16px; }
     button { border: none; border-radius: 8px; cursor: pointer; }
 
@@ -72,15 +73,16 @@
   const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
 
   const loginBtn = document.getElementById("login-btn");
+  const adminKeyInput = document.getElementById("admin-key");
   const loginSection = document.getElementById("login-section");
   const dashboard = document.getElementById("dashboard");
   const statusText = document.getElementById("login-status");
 
-  loginBtn.addEventListener("click", async () => {
-    const key = document.getElementById("admin-key").value.trim();
+  async function attemptLogin() {
+    const key = adminKeyInput.value.trim();
     if (!key) return alert("Please enter admin key");
 
-    statusText.textContent = "⏳ Connecting to server... (may take ~10 sec if server is sleeping)";
+    statusText.textContent = "⏳ Connecting to server...";
 
     try {
       const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
@@ -103,6 +105,16 @@
     } catch (err) {
       statusText.textContent = "⚠️ Error: Server is sleeping or offline. Try again soon.";
       console.log(err);
+    }
+  }
+
+  loginBtn.addEventListener("click", attemptLogin);
+
+  // Allow ENTER key to submit admin key (faster login)
+  adminKeyInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      attemptLogin();
     }
   });
 </script>
