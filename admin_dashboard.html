@@ -193,18 +193,34 @@ document.getElementById("feedback-analysis-btn").addEventListener("click", async
   }catch(err){ alert("Failed to load feedback analysis."); console.error(err);}
 });
 
-// --- PDF Export ---
+// --- Multi-page PDF Export ---
 document.getElementById("export-pdf-btn").addEventListener("click", async()=>{
   const container=document.getElementById("feedback-analysis-container");
-  html2canvas(container,{scale:2}).then(canvas=>{
-    const imgData=canvas.toDataURL('image/png');
-    const pdf=new jspdf.jsPDF('p','mm','a4');
-    const pageWidth=pdf.internal.pageSize.getWidth();
-    const imgProps=pdf.getImageProperties(imgData);
-    const pdfHeight=(imgProps.height*pageWidth)/imgProps.width;
-    pdf.addImage(imgData,'PNG',0,0,pageWidth,pdfHeight);
-    pdf.save("feedback_report.pdf");
-  });
+  const charts=container.querySelectorAll("canvas");
+
+  if(charts.length===0){ alert("No charts to export"); return; }
+
+  const pdf=new jspdf.jsPDF('p','mm','a4');
+  const pageWidth=pdf.internal.pageSize.getWidth();
+  const pageHeight=pdf.internal.pageSize.getHeight();
+  const margin=10; // margin on each page
+
+  for(let i=0; i<charts.length; i++){
+    const canvas=charts[i];
+    await html2canvas(canvas,{scale:2}).then(canvasImg=>{
+      const imgData=canvasImg.toDataURL('image/png');
+      const imgProps=pdf.getImageProperties(imgData);
+      const imgWidth=pageWidth-margin*2;
+      const imgHeight=(imgProps.height*imgWidth)/imgProps.width;
+
+      if(i>0) pdf.addPage();
+      pdf.setFontSize(16);
+      pdf.text(canvas.id.replace("chart-","Question ").toUpperCase(), margin, 15);
+      pdf.addImage(imgData,'PNG',margin,25,imgWidth,imgHeight);
+    });
+  }
+
+  pdf.save("feedback_report.pdf");
 });
 </script>
 </body>
