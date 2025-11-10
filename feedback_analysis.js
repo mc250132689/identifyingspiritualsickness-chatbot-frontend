@@ -6,8 +6,8 @@ async function loadFeedback() {
 
   document.getElementById("total-count").textContent = data.length;
 
-  // Compute average satisfaction score (Q8)
-  let scores = data.map(f => parseInt(f.q8)).filter(n => !isNaN(n));
+  // Calculate average satisfaction score (Q8)
+  let scores = data.map(f => parseFloat(f.q8)).filter(n => !isNaN(n));
   let avg = scores.length ? (scores.reduce((a,b)=>a+b,0) / scores.length).toFixed(2) : "No data";
   document.getElementById("avg-score").textContent = avg;
 
@@ -15,9 +15,9 @@ async function loadFeedback() {
   let text = data.map(f => f.comments || "").join(" ").toLowerCase();
   let words = text.split(/\s+/).filter(w => w.length > 4);
   let freq = {};
-  words.forEach(w => freq[w] = (freq[w]||0)+1);
+  words.forEach(w => freq[w] = (freq[w] || 0) + 1);
   let sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  document.getElementById("keywords").textContent = sorted.map(w=>w[0]).join(", ");
+  document.getElementById("keywords").textContent = sorted.map(w=>w[0]).join(", ") || "No data";
 
   // Fill table
   const tbody = document.querySelector("#feedback-table tbody");
