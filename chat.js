@@ -5,6 +5,26 @@ async function sendMessage() {
   const msg = input.value.trim();
   if (!msg) return;
 
+async function searchHadith() {
+  const q = prompt("Enter keyword to find hadith:");
+  if(!q) return;
+
+  const r = await fetch(API + "/search-hadith", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({query:q})
+  });
+  const data = await r.json();
+
+  if(data.results.length === 0) {
+    addMessage("No hadith found.");
+  } else {
+    data.results.forEach(h => {
+      addMessage("[Hadith] " + h.text + " — (" + h.source + ")");
+    });
+  }
+}
+
   addMessage("You: " + msg);
   input.value = "";
 
