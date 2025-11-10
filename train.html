@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>Train Spiritual Bot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Train Chatbot</h1>
-    <form id="train-form">
-      <input type="text" id="question" placeholder="Enter question" required>
-      <textarea id="answer" placeholder="Enter answer" required></textarea>
-      <button type="submit">Submit</button>
-    </form>
-    <p id="train-response"></p>
+    <div class="card">
+      <h1>Train Chatbot</h1>
+      <form id="train-form">
+        <input type="text" id="question" placeholder="Enter question" required>
+        <textarea id="answer" placeholder="Enter answer" required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+      <p id="train-response"></p>
 
-    <!-- Preview trained Q&A -->
-    <div id="train-preview"></div>
+      <!-- Preview trained Q&A -->
+      <div id="train-preview"></div>
+    </div>
   </div>
 
   <script src="train.js"></script>
