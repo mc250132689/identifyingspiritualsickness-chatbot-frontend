@@ -37,12 +37,6 @@
     #train-analysis-btn { background: #ec4899; color: white; }
     #train-analysis-btn:hover { background: #be185d; }
 
-    #export-data-btn { background: #f59e0b; color: white; }
-    #export-data-btn:hover { background: #b45309; }
-
-    #export-feedback-btn { background: #ef4444; color: white; }
-    #export-feedback-btn:hover { background: #b91c1c; }
-
     pre { background:#f6f6f9; padding:10px; border-radius:8px; max-height:200px; overflow:auto; font-size:13px; }
 
     .dots span { animation: blink 1s infinite; }
@@ -108,11 +102,9 @@
 <div class="btn-row">
   <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
   <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
+  <button id="train-analysis-btn" onclick="window.location.href='train_analysis.html'">📈 Training Analysis</button>
   <button id="view-feedback-btn" onclick="window.location.href='view_feedback.html'">📂 View Feedback Data</button>
   <button id="feedback-analysis-btn" onclick="window.location.href='feedback_analysis.html'">📊 Feedback Analysis</button>
-  <button id="train-analysis-btn" onclick="window.location.href='train_analysis.html'">📈 Training Analysis</button>
-  <button id="export-data-btn">⬇️ Export Training JSON</button>
-  <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
 </div>
 
 
@@ -243,33 +235,7 @@ async function attemptLogin() {
 loginBtn.addEventListener("click", attemptLogin);
 adminKeyInput.addEventListener("keydown", (e) => { if(e.key==="Enter"){e.preventDefault(); attemptLogin();} });
 
-// Export buttons
-document.getElementById("export-data-btn").addEventListener("click", async () => {
-  const key = adminKeyInput.value.trim() || prompt("Enter admin key to export:");
-  if (!key) return;
-  try {
-    const res = await fetch(`${BASE_URL}/export-training-data`);
-    const data = await res.json();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "training_data_export.json"; a.click();
-    URL.revokeObjectURL(url);
-  } catch { alert("Failed to export."); }
-});
 
-document.getElementById("export-feedback-btn").addEventListener("click", async () => {
-  const key = adminKeyInput.value.trim() || prompt("Enter admin key to export feedback:");
-  if (!key) return;
-  try {
-    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(key)}`);
-    if (!res.ok) throw new Error("unauth");
-    const data = await res.json();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "feedback_export.json"; a.click();
-    URL.revokeObjectURL(url);
-  } catch { alert("Failed to export feedback (check admin key)."); }
-});
 </script>
 </body>
 </html>
