@@ -1,46 +1,41 @@
 const FEEDBACK_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
-const ADMIN_KEY = "mc250132689"; // insert your actual admin key
 
 async function loadFeedback() {
   try {
-    const response = await fetch(`https://identifyingspiritualsickness-chatbot.onrender.com/feedback-analysis?key=${ADMIN_KEY}`);
-    const data = await response.json();
+    const res = await fetch(FEEDBACK_DATA_URL);
+    const data = await res.json();
 
-    // Fill feedback count
-    document.getElementById("feedbackCount").innerText = data.feedback_count;
+    document.getElementById("total-count").textContent = data.length;
 
-    // Fill sentiment stats
-    document.getElementById("positiveCount").innerText = data.sentiments.positive;
-    document.getElementById("neutralCount").innerText = data.sentiments.neutral;
-    document.getElementById("negativeCount").innerText = data.sentiments.negative;
+    // Keyword extraction
+    let text = data.map(f => (f.comments || "").toLowerCase()).join(" ");
+    let words = text.split(/\s+/).filter(w => w.length > 4);
+    let freq = {};
+    words.forEach(w => freq[w] = (freq[w] || 0) + 1);
+    let sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 7);
+    document.getElementById("keywords").textContent = sorted.map(w => w[0]).join(", ") || "-";
 
-    // Fill top keywords list
-    const keywordList = document.getElementById("keywordList");
-    keywordList.innerHTML = "";
-    data.top_keywords.forEach(word => {
-      const li = document.createElement("li");
-      li.textContent = word;
-      keywordList.appendChild(li);
-    });
-
-    // Fill table with feedback list
-    const tbody = document.getElementById("feedbackTableBody");
+    // Fill table
+    const tbody = document.querySelector("#feedback-table tbody");
     tbody.innerHTML = "";
-    data.feedback_list.forEach(item => {
-      const row = `
-        <tr>
-          <td>${item.feeling || "-"}</td>
-          <td>${item.comments || "-"}</td>
-          <td>${item.date || "-"}</td>
-        </tr>
+
+    data.forEach(f => {
+      let row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${f.name || "-"}</td>
+        <td>${f.student_id || "-"}</td>
+        <td>${f.program || "-"}</td>
+        <td>${f.q8 || "-"}</td>
+        <td>${sorted[0] ? sorted[0][0] : "-"}</td>
+        <td>${f.comments || "-"}</td>
       `;
-      tbody.innerHTML += row;
+      tbody.appendChild(row);
     });
 
-  } catch (error) {
-    console.error("Error loading feedback:", error);
+  } catch (err) {
+    console.error("Error loading feedback:", err);
   }
 }
 
-window.onload = loadFeedback;
+loadFeedback();
 setInterval(loadFeedback, 5000);
