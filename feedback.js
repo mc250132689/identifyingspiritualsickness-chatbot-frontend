@@ -35,12 +35,12 @@ form.addEventListener("submit", async (e) => {
     status.textContent = data.message || "✅ Submitted. Thank you!";
     form.reset();
 
-    // Notify admin dashboard for real-time refresh
+    // --- Notify admin dashboard for real-time refresh ---
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage({ type: "refresh-feedback" }, "*");
     }
 
-    // Optionally, notify chat page for real-time updates
+    // --- Notify chat page for real-time updates ---
     window.dispatchEvent(new CustomEvent("feedback-submitted", { detail: payload }));
 
   } catch (err) {
