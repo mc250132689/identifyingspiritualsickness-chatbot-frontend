@@ -31,15 +31,20 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify(payload)
     });
     const data = await res.json();
-    status.textContent = data.message || "Submitted. Thank you!";
+
+    status.textContent = data.message || "✅ Submitted. Thank you!";
     form.reset();
 
-    // Notify feedback-analysis page to refresh
+    // Notify admin dashboard for real-time refresh
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage({ type: "refresh-feedback" }, "*");
     }
+
+    // Optionally, notify chat page for real-time updates
+    window.dispatchEvent(new CustomEvent("feedback-submitted", { detail: payload }));
+
   } catch (err) {
     console.error(err);
-    status.textContent = "Error submitting feedback. Please try later.";
+    status.textContent = "⚠️ Error submitting feedback. Please try again later.";
   }
 });
