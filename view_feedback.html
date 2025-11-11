@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Feedback - Identifying Spiritual Sickness Chatbot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .btn { padding: 8px 14px; border-radius: 8px; background:#1f3d39; color:white; text-decoration:none; }
+    .btn:hover { background:#335b53; }
+    .feedback-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border-left: 4px solid #3b5e53;
+    }
+    .meta { font-size: 13px; color:#58736d; margin-bottom:6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <header style="display:flex; align-items:center; justify-content:space-between;">
+        <h1>📄 Feedback Responses</h1>
+        <a href="admin_dashboard.html" class="btn">← Back</a>
+      </header>
+
+      <p style="font-size:13px; color:#516c65;">This page shows all submitted feedback responses.</p>
+
+      <button id="refresh" class="btn" style="margin:8px 0;">Refresh</button>
+
+      <div id="feedback-list">Loading...</div>
+    </div>
+  </div>
+
+<script>
+  const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
+  const list = document.getElementById("feedback-list");
+  const refreshBtn = document.getElementById("refresh");
+
+  async function loadFeedback() {
+    list.textContent = "Loading...";
+    try {
+      const res = await fetch(FEEDBACK_API);
+      const data = await res.json();
+
+      if (!data || !data.length) {
+        list.innerHTML = "<p>No feedback submitted yet.</p>";
+        return;
+      }
+
+      list.innerHTML = "";
+      data.slice().reverse().forEach(fb => {
+        const card = document.createElement("div");
+        card.className = "feedback-card";
+        card.innerHTML = `
+          <div class="meta">
+            <strong>${fb.name || "Anonymous"}</strong> 
+            ${fb.student_id ? `• ${fb.student_id}` : ""}
+            ${fb.program ? `• ${fb.program}` : ""}
+          </div>
+          <div style="margin-top:6px;">
+            <strong>Chatbot Usability:</strong> ${fb.q4 || '-'}<br>
+            <strong>Clarity of Instructions:</strong> ${fb.q5 || '-'}<br>
+            <strong>Difficulty:</strong> ${fb.q6 || '-'}<br>
+            <strong>Relevance:</strong> ${fb.q7 || '-'}<br>
+            <strong>Accuracy:</strong> ${fb.q8 || '-'}<br>
+            <strong>Misleading Responses:</strong> ${fb.q9 || '-'}<br>
+            <strong>Helpfulness:</strong> ${fb.q10 || '-'}<br>
+            <strong>Would Use Again:</strong> ${fb.q11 || '-'}<br><br>
+
+            <strong>Suggestions:</strong><br>${fb.q12 || "-"}<br><br>
+            <strong>Overall Satisfaction:</strong> ${fb.q13 || '-'}<br><br>
+            <strong>Additional Comments:</strong><br>${fb.q14 || "-"}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      list.textContent = "Failed to load feedback.";
+    }
+  }
+
+  refreshBtn.addEventListener("click", loadFeedback);
+
+  // auto-update every 10s
+  setInterval(loadFeedback, 10000);
+
+  // update immediately if feedback submitted from another tab
+  window.addEventListener("message", (e) => {
+    if (e.data?.type === "refresh-feedback") loadFeedback();
+  });
+
+  loadFeedback();
+</script>
+
+</body>
+</html>
