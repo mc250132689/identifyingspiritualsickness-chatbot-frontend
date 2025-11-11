@@ -45,7 +45,6 @@
       50%, 100% { opacity: 1; }
     }
 
-    /* Responsive tweaks */
     @media(max-width: 600px){
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .btn-row { flex-direction: column; gap: 12px; }
@@ -114,6 +113,8 @@
 
 <script>
 const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const MAX_PING_RETRIES = 10;
+let refreshInterval;
 
 const loginBtn = document.getElementById("login-btn");
 const adminKeyInput = document.getElementById("admin-key");
@@ -121,13 +122,11 @@ const loginSection = document.getElementById("login-section");
 const dashboard = document.getElementById("dashboard");
 const statusText = document.getElementById("login-status");
 
-// Animated dots helper
 function animatedDots(text) {
   return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
 }
 
-// Ping server
-async function checkServerAlive() {
+async function checkServerAlive(retries = 0) {
   statusText.innerHTML = animatedDots("⏳ Checking server status");
   try {
     const res = await fetch(`${BASE_URL}/ping`);
@@ -135,33 +134,28 @@ async function checkServerAlive() {
     statusText.textContent = "✅ Server is online!";
     return true;
   } catch (err) {
-    statusText.innerHTML = animatedDots("⚠️ Server is sleeping. Waking up");
-    console.log(err);
+    if (retries >= MAX_PING_RETRIES) {
+      statusText.textContent = "⚠️ Server still sleeping. Try refreshing later.";
+      console.log(err);
+      return false;
+    }
+    statusText.innerHTML = animatedDots("⚠️ Server sleeping. Waking up");
     await new Promise(r => setTimeout(r, 3000));
-    return checkServerAlive();
+    return checkServerAlive(retries + 1);
   }
 }
 
-// Login and fetch stats
-async function attemptLogin() {
-  const key = adminKeyInput.value.trim();
-  if (!key) return alert("Please enter admin key");
-
-  await checkServerAlive();
-  statusText.textContent = animatedDots("⏳ Logging in");
-
+// Fetch and update dashboard stats
+async function fetchDashboardStats(key) {
   try {
     const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
     if (!res.ok) throw new Error("Backend unreachable");
     const data = await res.json();
-
     if (data.error) {
       statusText.textContent = "❌ Unauthorized Admin Key!";
+      clearInterval(refreshInterval);
       return;
     }
-
-    loginSection.style.display = "none";
-    dashboard.style.display = "block";
 
     document.getElementById("total-records").textContent = data.total_records;
     document.getElementById("hadith-count").textContent = data.hadith_count;
@@ -192,6 +186,29 @@ async function attemptLogin() {
       p.textContent = JSON.stringify(h, null, 2);
       he.appendChild(p);
     });
+  } catch (err) {
+    console.log("Error fetching stats:", err);
+  }
+}
+
+// Login and start auto-refresh
+async function attemptLogin() {
+  const key = adminKeyInput.value.trim();
+  if (!key) return alert("Please enter admin key");
+
+  const serverReady = await checkServerAlive();
+  if (!serverReady) return;
+
+  statusText.textContent = animatedDots("⏳ Logging in");
+
+  try {
+    await fetchDashboardStats(key);
+    loginSection.style.display = "none";
+    dashboard.style.display = "block";
+    statusText.textContent = "✅ Dashboard loaded";
+
+    // Auto-refresh every 5 seconds
+    refreshInterval = setInterval(() => fetchDashboardStats(key), 5000);
 
   } catch (err) {
     statusText.textContent = "⚠️ Error: Could not connect to server.";
@@ -200,7 +217,7 @@ async function attemptLogin() {
 }
 
 loginBtn.addEventListener("click", attemptLogin);
-adminKeyInput.addEventListener("keydown", (e) => { if(e.key==="Enter"){e.preventDefault(); attemptLogin();} });
+adminKeyInput.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); attemptLogin(); } });
 
 // Export buttons
 document.getElementById("export-data-btn").addEventListener("click", async () => {
