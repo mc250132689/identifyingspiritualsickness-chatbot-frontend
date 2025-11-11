@@ -3,28 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard - Identifying Spiritual Sickness Chatbot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f0f5f4; padding: 20px; color:#1b3b3a; }
-    h1 { text-align: center; color: #14532d; }
-    .admin-container { max-width: 900px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #10b981; color: white; padding: 20px; border-radius: 10px; text-align: center; }
-    .small { font-size: 13px; color: #064e3b; }
+    h1 { text-align: center; color: #14532d; margin-bottom: 20px; }
+
+    .admin-container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: #10b981; color: white; padding: 20px; border-radius: 10px; text-align: center; transition: transform 0.2s; }
+    .stat-card:hover { transform: scale(1.03); }
+    .small { font-size: 13px; color: #064e3b; margin-bottom:4px; }
 
     #login-section { text-align: center; margin-top: 40px; }
-    input, button { padding: 10px; margin: 5px; font-size: 16px; }
-    button { border: none; border-radius: 8px; cursor: pointer; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; border-radius: 8px; }
+    input { width: 200px; border: 1px solid #ccc; }
+    button { border: none; cursor: pointer; transition: background 0.3s; }
 
-    /* Buttons row */
-    .btn-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 20px;
-    }
+    .btn-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 25px; }
 
     #train-btn { background: #2563eb; color: white; }
     #train-btn:hover { background: #1e40af; }
@@ -32,28 +28,28 @@
     #view-train-btn { background: #8b5cf6; color: white; }
     #view-train-btn:hover { background: #6d28d9; }
 
-    #export-data-btn { background:#f59e0b; color:white; }
-    #export-data-btn:hover { background:#b45309; }
+    #export-data-btn { background: #f59e0b; color: white; }
+    #export-data-btn:hover { background: #b45309; }
 
-    #export-feedback-btn { background:#ef4444; color:white; }
-    #export-feedback-btn:hover { background:#b91c1c; }
+    #export-feedback-btn { background: #ef4444; color: white; }
+    #export-feedback-btn:hover { background: #b91c1c; }
 
-    /* NEW BUTTON FOR FEEDBACK ANALYSIS */
-    #feedback-analysis-btn { background:#0d9488; color:white; }
-    #feedback-analysis-btn:hover { background:#0f766e; }
+    pre { background:#f6f6f9; padding:10px; border-radius:8px; max-height:200px; overflow:auto; font-size:13px; }
 
-    pre { background:#f6f6f9;padding:10px;border-radius:8px; max-height:200px; overflow:auto; }
-
-    /* Animated dots */
-    .dots span {
-      animation: blink 1s infinite;
-    }
+    .dots span { animation: blink 1s infinite; }
     .dots span:nth-child(2) { animation-delay: 0.2s; }
     .dots span:nth-child(3) { animation-delay: 0.4s; }
 
     @keyframes blink {
       0%, 20% { opacity: 0; }
       50%, 100% { opacity: 1; }
+    }
+
+    /* Responsive tweaks */
+    @media(max-width: 600px){
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .btn-row { flex-direction: column; gap: 12px; }
+      input { width: 80%; }
     }
   </style>
 </head>
@@ -70,6 +66,8 @@
   <!-- Dashboard section -->
   <div id="dashboard" style="display:none">
     <div class="admin-container">
+
+      <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
           <h2 id="total-records">0</h2>
@@ -85,151 +83,152 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-        <div style="flex:1">
+      <!-- Recent & Top Questions -->
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:200px;">
           <h3>Recent Records</h3>
-          <div id="recent-list" style="max-height:180px;overflow:auto;padding:8px;background:#f7fff9;border-radius:8px"></div>
+          <div id="recent-list" style="max-height:180px; overflow:auto; padding:8px; background:#f7fff9; border-radius:8px;"></div>
         </div>
-        <div style="flex:1">
+        <div style="flex:1; min-width:200px;">
           <h3>Top Questions</h3>
-          <div id="top-questions" style="max-height:180px;overflow:auto;padding:8px;background:#fff7ff;border-radius:8px"></div>
+          <div id="top-questions" style="max-height:180px; overflow:auto; padding:8px; background:#fff7ff; border-radius:8px;"></div>
         </div>
       </div>
 
+      <!-- Buttons -->
       <div class="btn-row">
         <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
         <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
         <button id="export-data-btn">⬇️ Export Training JSON</button>
         <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
-        <button id="feedback-analysis-btn" onclick="window.location.href='feedback_analysis.html'">📊 Feedback Analysis</button>
       </div>
 
-      <div style="margin-top:16px">
+      <!-- Hadith Examples -->
+      <div style="margin-top:20px;">
         <h3>Hadith Examples (up to 5)</h3>
         <div id="hadith-examples"></div>
       </div>
+
     </div>
   </div>
 
 <script>
-  const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
 
-  const loginBtn = document.getElementById("login-btn");
-  const adminKeyInput = document.getElementById("admin-key");
-  const loginSection = document.getElementById("login-section");
-  const dashboard = document.getElementById("dashboard");
-  const statusText = document.getElementById("login-status");
+const loginBtn = document.getElementById("login-btn");
+const adminKeyInput = document.getElementById("admin-key");
+const loginSection = document.getElementById("login-section");
+const dashboard = document.getElementById("dashboard");
+const statusText = document.getElementById("login-status");
 
-  let adminKey = "";
+// Animated dots helper
+function animatedDots(text) {
+  return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+}
 
-  function animatedDots(text) {
-    return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+// Ping server
+async function checkServerAlive() {
+  statusText.innerHTML = animatedDots("⏳ Checking server status");
+  try {
+    const res = await fetch(`${BASE_URL}/ping`);
+    if (!res.ok) throw new Error("Server not responding");
+    statusText.textContent = "✅ Server is online!";
+    return true;
+  } catch (err) {
+    statusText.innerHTML = animatedDots("⚠️ Server is sleeping. Waking up");
+    console.log(err);
+    await new Promise(r => setTimeout(r, 3000));
+    return checkServerAlive();
   }
+}
 
-  async function checkServerAlive() {
-    statusText.innerHTML = animatedDots("⏳ Checking server status");
-    try {
-      const res = await fetch(`${BASE_URL}/ping`);
-      if (!res.ok) throw new Error("Server offline");
-      statusText.textContent = "✅ Server is online!";
-      return true;
-    } catch (err) {
-      statusText.innerHTML = animatedDots("⚠️ Server sleeping, waking up");
-      await new Promise(r => setTimeout(r, 3000));
-      return checkServerAlive();
+// Login and fetch stats
+async function attemptLogin() {
+  const key = adminKeyInput.value.trim();
+  if (!key) return alert("Please enter admin key");
+
+  await checkServerAlive();
+  statusText.textContent = animatedDots("⏳ Logging in");
+
+  try {
+    const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error("Backend unreachable");
+    const data = await res.json();
+
+    if (data.error) {
+      statusText.textContent = "❌ Unauthorized Admin Key!";
+      return;
     }
+
+    loginSection.style.display = "none";
+    dashboard.style.display = "block";
+
+    document.getElementById("total-records").textContent = data.total_records;
+    document.getElementById("hadith-count").textContent = data.hadith_count;
+    document.getElementById("feedback-count").textContent = data.feedback_count;
+
+    const recentEl = document.getElementById("recent-list");
+    recentEl.innerHTML = "";
+    (data.recent_records || []).slice().reverse().forEach(r => {
+      const d = document.createElement("div");
+      d.className = "small";
+      d.textContent = `${(r.lang||'en').toUpperCase()} - ${r.question || r.answer}`;
+      recentEl.appendChild(d);
+    });
+
+    const topQ = document.getElementById("top-questions");
+    topQ.innerHTML = "";
+    (data.top_questions || []).forEach(q => {
+      const d = document.createElement("div");
+      d.className = "small";
+      d.textContent = q;
+      topQ.appendChild(d);
+    });
+
+    const he = document.getElementById("hadith-examples");
+    he.innerHTML = "";
+    (data.hadith_examples || []).forEach(h => {
+      const p = document.createElement("pre");
+      p.textContent = JSON.stringify(h, null, 2);
+      he.appendChild(p);
+    });
+
+  } catch (err) {
+    statusText.textContent = "⚠️ Error: Could not connect to server.";
+    console.log(err);
   }
+}
 
-  async function fetchDashboardData() {
-    if (!adminKey) return;
-    try {
-      const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(adminKey)}`);
-      const data = await res.json();
-      if (data.error) return;
+loginBtn.addEventListener("click", attemptLogin);
+adminKeyInput.addEventListener("keydown", (e) => { if(e.key==="Enter"){e.preventDefault(); attemptLogin();} });
 
-      document.getElementById("total-records").textContent = data.total_records;
-      document.getElementById("hadith-count").textContent = data.hadith_count;
-      document.getElementById("feedback-count").textContent = data.feedback_count;
-
-      // Recent Records
-      const recent = document.getElementById("recent-list");
-      recent.innerHTML = "";
-      data.recent_records?.slice().reverse().forEach(r => {
-        const d = document.createElement("div");
-        d.className = "small";
-        d.textContent = `${(r.lang||'en').toUpperCase()} - ${r.question || r.answer}`;
-        recent.appendChild(d);
-      });
-
-      // Top Questions
-      const top = document.getElementById("top-questions");
-      top.innerHTML = "";
-      data.top_questions?.forEach(q => {
-        const d = document.createElement("div");
-        d.className = "small";
-        d.textContent = q;
-        top.appendChild(d);
-      });
-
-      // Hadith Examples
-      const he = document.getElementById("hadith-examples");
-      he.innerHTML = "";
-      data.hadith_examples?.forEach(h => {
-        const p = document.createElement("pre");
-        p.textContent = JSON.stringify(h, null, 2);
-        he.appendChild(p);
-      });
-
-    } catch (err) { console.error("Dashboard fetch error:", err); }
-  }
-
-  async function attemptLogin() {
-    const key = adminKeyInput.value.trim();
-    if (!key) return alert("Please enter admin key");
-    await checkServerAlive();
-    statusText.textContent = animatedDots("⏳ Logging in");
-
-    try {
-      const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
-      const data = await res.json();
-      if (data.error) return statusText.textContent = "❌ Invalid Admin Key";
-
-      adminKey = key;
-      loginSection.style.display = "none";
-      dashboard.style.display = "block";
-      statusText.textContent = "";
-
-      // First load
-      fetchDashboardData();
-
-      // Set live update every 10 seconds
-      setInterval(fetchDashboardData, 10000);
-
-    } catch (err) { statusText.textContent = "⚠️ Error connecting to server."; }
-  }
-
-  loginBtn.addEventListener("click", attemptLogin);
-  adminKeyInput.addEventListener("keydown", e => { if (e.key==="Enter") attemptLogin(); });
-
-  document.getElementById("export-data-btn").addEventListener("click", async () => {
+// Export buttons
+document.getElementById("export-data-btn").addEventListener("click", async () => {
+  const key = adminKeyInput.value.trim() || prompt("Enter admin key to export:");
+  if (!key) return;
+  try {
     const res = await fetch(`${BASE_URL}/export-training-data`);
     const data = await res.json();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "training_data_export.json"; a.click();
     URL.revokeObjectURL(url);
-  });
+  } catch { alert("Failed to export."); }
+});
 
-  document.getElementById("export-feedback-btn").addEventListener("click", async () => {
-    if (!adminKey) adminKey = prompt("Enter admin key:") || "";
-    if (!adminKey) return;
-    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(adminKey)}`);
+document.getElementById("export-feedback-btn").addEventListener("click", async () => {
+  const key = adminKeyInput.value.trim() || prompt("Enter admin key to export feedback:");
+  if (!key) return;
+  try {
+    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error("unauth");
     const data = await res.json();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "feedback_export.json"; a.click();
     URL.revokeObjectURL(url);
-  });
+  } catch { alert("Failed to export feedback (check admin key)."); }
+});
 </script>
 </body>
 </html>
