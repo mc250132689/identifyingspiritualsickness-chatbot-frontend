@@ -1,5 +1,5 @@
 // Backend API URLs
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+const CHAT_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
 const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 const GUIDANCE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/guidance";
 
@@ -7,33 +7,23 @@ const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 
-// Function to smoothly scroll chat to bottom
+// Smooth scroll
 function scrollToBottomSmooth() {
-  chatBox.scrollTo({
-    top: chatBox.scrollHeight,
-    behavior: 'smooth'
-  });
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 }
 
-// Function to resize textarea dynamically
+// Dynamic textarea resize
 function resizeTextarea() {
-  input.style.height = 'auto'; // reset height
-  input.style.height = input.scrollHeight + 'px'; // grow/shrink dynamically
-  scrollToBottomSmooth(); // scroll chat to bottom while typing
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+  scrollToBottomSmooth();
 }
-
-// Listen for input events to resize textarea
 input.addEventListener('input', resizeTextarea);
 
-// In-memory dictionary for trained Q&A
+// Trained Q&A cache
 let trainedAnswers = {};
 
-function normalizeText(s) {
-  if (!s) return "";
-  return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-// Load trained answers from backend, persist to localStorage
+// Load trained answers from backend and localStorage cache
 async function loadTrainedAnswers() {
   try {
     const res = await fetch(TRAIN_DATA_URL);
@@ -45,26 +35,21 @@ async function loadTrainedAnswers() {
       });
       localStorage.setItem('trained_answers_cache', JSON.stringify(data.training_data));
     }
-    console.log("Loaded trained answers:", Object.keys(trainedAnswers).length);
   } catch (err) {
-    console.error("Failed to load trained answers:", err);
     const cached = localStorage.getItem('trained_answers_cache');
     if (cached) {
       try {
         const arr = JSON.parse(cached);
         trainedAnswers = {};
         arr.forEach(item => trainedAnswers[item.question.toLowerCase()] = item.answer);
-        console.log('Loaded trained answers from localStorage:', Object.keys(trainedAnswers).length);
-      } catch (e) { console.error('Invalid localStorage cache', e); }
+      } catch (e) { console.warn('Invalid localStorage cache', e); }
     }
   }
 }
-
-// Initial load
 loadTrainedAnswers();
 setInterval(loadTrainedAnswers, 30000);
 
-// Add new trained answer dynamically
+// Add new trained Q&A dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
   trainedAnswers[question.toLowerCase()] = answer;
   try {
@@ -74,8 +59,14 @@ window.chatAddTrainedAnswer = (question, answer) => {
   } catch (e) { console.warn(e); }
 };
 
-// Append message to chat
-function appendMessage(userText, botText) {
+// Normalize text
+function normalizeText(s) {
+  if (!s) return "";
+  return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// Append message
+function appendMessage(userText, botText, botElem=null) {
   const container = document.createElement("div");
   container.className = "message-pair";
 
@@ -90,15 +81,14 @@ function appendMessage(userText, botText) {
   container.appendChild(botMsg);
 
   chatBox.appendChild(container);
-  scrollToBottomSmooth(); // smooth scroll when new message added
+  scrollToBottomSmooth();
 
   return botMsg;
 }
 
-// Format bot answer
+// Format bot answer (support tables, headings)
 function formatBotAnswer(text) {
   if (!text) return "";
-
   let formatted = text
     .replace(/\r\n|\r|\n/g, "<br>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -112,7 +102,6 @@ function formatBotAnswer(text) {
       }).join("");
       return `<table class="chat-table">${tableRows}</table>`;
     });
-
   return formatted;
 }
 
@@ -120,9 +109,8 @@ function formatBotAnswer(text) {
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
-
   input.value = "";
-  resizeTextarea(); // shrink textarea after sending
+  resizeTextarea();
 
   const normalizedUser = normalizeText(userText);
   let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
@@ -138,13 +126,14 @@ async function sendMessage() {
   const botMsgElem = appendMessage(`🧍: ${userText}`, null);
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: userText }),
     });
-
     const data = await res.json();
+
+    // Append bot response
     botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
 
     // Update local trained cache
@@ -155,7 +144,7 @@ async function sendMessage() {
       trainedAnswers[userText.toLowerCase()] = data.response;
     } catch (e) { console.warn(e); }
 
-    scrollToBottomSmooth(); // smooth scroll after receiving response
+    scrollToBottomSmooth();
 
   } catch (err) {
     botMsgElem.innerHTML = "🤖: Error connecting to backend.";
@@ -164,13 +153,28 @@ async function sendMessage() {
   }
 }
 
-// Send on button click
+// Send on button click or Enter key
 sendBtn.addEventListener('click', sendMessage);
-
-// ENTER = send, SHIFT+ENTER = newline
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
   }
 });
+
+// Optional: Guidance feature integration (if you want symptom-based advice button)
+/*
+async function requestGuidance(symptomsText) {
+  try {
+    const res = await fetch(GUIDANCE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ symptoms: symptomsText }),
+    });
+    const data = await res.json();
+    appendMessage(`🧍: ${symptomsText}`, `🤖: Guidance severity: ${data.severity}<br>${data.suggestions.join("<br>")}`);
+  } catch (err) {
+    console.error(err);
+  }
+}
+*/
