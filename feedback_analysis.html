@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>📊 Feedback Analysis</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Feedback Analysis - Identifying Spiritual Sickness Chatbot</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
 
-<style>
-  table { width:100%; border-collapse:collapse; margin-top:15px; }
-  th, td { border:1px solid #ccc; padding:8px; font-size:14px; }
-  th { background:#dfe8e6; }
-  #summary-box { background:#f4faf8; border:1px solid #b9d8cf; padding:15px; margin-top:20px; border-radius:6px; }
-</style>
-
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 1000px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 8px; }
+    h1 { text-align: center; }
+    .stats { display: flex; justify-content: space-around; margin-top: 20px; }
+    .stats div { background: #eee; padding: 15px; border-radius: 6px; text-align: center; width: 30%; }
+    table { width: 100%; border-collapse: collapse; margin-top:20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; }
+    th { background: #fafafa; }
+    ul { padding-left: 20px; }
+  </style>
 </head>
+
 <body>
-<div class="container">
-<div class="card">
+  <div class="container">
+    <h1>📊 Feedback Analysis</h1>
 
-<header style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;">
-  <h2>📊 Feedback Analysis</h2>
-</header>
+    <p><b>Total Feedback Received:</b> <span id="feedbackCount">0</span></p>
 
-<div id="summary-box">
-  <p><strong>Total Feedback:</strong> <span id="total-count">0</span></p>
-  <p><strong>Average Satisfaction Score (Q8):</strong> <span id="avg-score">-</span> / 5</p>
-  <p><strong>Most Common Keywords:</strong> <span id="keywords">Loading...</span></p>
-</div>
+    <div class="stats">
+      <div>
+        <h3>Positive</h3>
+        <span id="positiveCount">0</span>
+      </div>
+      <div>
+        <h3>Neutral</h3>
+        <span id="neutralCount">0</span>
+      </div>
+      <div>
+        <h3>Negative</h3>
+        <span id="negativeCount">0</span>
+      </div>
+    </div>
 
-<h3 style="margin-top:25px;">All Feedback Records</h3>
+    <h3>Top Keywords</h3>
+    <ul id="keywordList"></ul>
 
-<table id="feedback-table">
-<thead>
-<tr>
-<th>Name</th>
-<th>Student ID</th>
-<th>Program</th>
-<th>Experience Score (Q8)</th>
-<th>Most Mentioned Issue</th>
-<th>Comments</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-</div>
-</div>
-
-<script src="feedback_analysis.js"></script>
+    <h3>Feedback Records</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Feeling</th>
+          <th>Comments</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="feedbackTableBody"></tbody>
+    </table>
+  </div>
 </body>
 </html>
