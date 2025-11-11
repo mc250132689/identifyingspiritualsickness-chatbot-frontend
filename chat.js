@@ -7,6 +7,24 @@ const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 
+// Function to smoothly scroll chat to bottom
+function scrollToBottomSmooth() {
+  chatBox.scrollTo({
+    top: chatBox.scrollHeight,
+    behavior: 'smooth'
+  });
+}
+
+// Function to resize textarea dynamically
+function resizeTextarea() {
+  input.style.height = 'auto'; // reset height
+  input.style.height = input.scrollHeight + 'px'; // grow/shrink dynamically
+  scrollToBottomSmooth(); // scroll chat to bottom while typing
+}
+
+// Listen for input events to resize textarea
+input.addEventListener('input', resizeTextarea);
+
 // In-memory dictionary for trained Q&A
 let trainedAnswers = {};
 
@@ -15,7 +33,7 @@ function normalizeText(s) {
   return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Load trained answers from backend, but persist to localStorage for browser-close persistence
+// Load trained answers from backend, persist to localStorage
 async function loadTrainedAnswers() {
   try {
     const res = await fetch(TRAIN_DATA_URL);
@@ -25,13 +43,11 @@ async function loadTrainedAnswers() {
       data.training_data.forEach(item => {
         trainedAnswers[item.question.toLowerCase()] = item.answer;
       });
-      // save to localStorage for persistence across browser restarts
       localStorage.setItem('trained_answers_cache', JSON.stringify(data.training_data));
     }
     console.log("Loaded trained answers:", Object.keys(trainedAnswers).length);
   } catch (err) {
     console.error("Failed to load trained answers:", err);
-    // fallback to localStorage if backend unreachable
     const cached = localStorage.getItem('trained_answers_cache');
     if (cached) {
       try {
@@ -39,23 +55,18 @@ async function loadTrainedAnswers() {
         trainedAnswers = {};
         arr.forEach(item => trainedAnswers[item.question.toLowerCase()] = item.answer);
         console.log('Loaded trained answers from localStorage:', Object.keys(trainedAnswers).length);
-      } catch (e) {
-        console.error('Invalid localStorage cache', e);
-      }
+      } catch (e) { console.error('Invalid localStorage cache', e); }
     }
   }
 }
 
 // Initial load
 loadTrainedAnswers();
-
-// Auto-refresh trained answers every 30 seconds
 setInterval(loadTrainedAnswers, 30000);
 
 // Add new trained answer dynamically
 window.chatAddTrainedAnswer = (question, answer) => {
   trainedAnswers[question.toLowerCase()] = answer;
-  // update localStorage cache too
   try {
     const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
     cached.push({ question, answer, lang: 'en' });
@@ -69,22 +80,22 @@ function appendMessage(userText, botText) {
   container.className = "message-pair";
 
   const userMsg = document.createElement("div");
-  userMsg.className = "user-msg";
-  userMsg.textContent = userText;
+  userMsg.className = "message user";
+  userMsg.innerHTML = userText;
   container.appendChild(userMsg);
 
   const botMsg = document.createElement("div");
-  botMsg.className = "bot-msg";
+  botMsg.className = "message bot";
   botMsg.innerHTML = botText || "🤲 Generating response...";
   container.appendChild(botMsg);
 
   chatBox.appendChild(container);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  scrollToBottomSmooth(); // smooth scroll when new message added
 
   return botMsg;
 }
 
-// Format bot answer with preserved spacing, paragraphs, bold/italic, tables
+// Format bot answer
 function formatBotAnswer(text) {
   if (!text) return "";
 
@@ -111,12 +122,10 @@ async function sendMessage() {
   if (!userText) return;
 
   input.value = "";
+  resizeTextarea(); // shrink textarea after sending
 
-  // Check trained answers first using normalized matching
   const normalizedUser = normalizeText(userText);
-  // try exact normalized match
   let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
-  // fallback: fuzzy by normalized startsWith or includes
   if (!trainedKey) {
     trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).startsWith(normalizedUser) || normalizeText(k).includes(normalizedUser));
   }
@@ -138,18 +147,20 @@ async function sendMessage() {
     const data = await res.json();
     botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
 
-    // Update local trained cache with this new pair for offline persistence
+    // Update local trained cache
     try {
       const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
       cached.push({ question: userText, answer: data.response, lang: 'en' });
       localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
-      // also update in-memory
       trainedAnswers[userText.toLowerCase()] = data.response;
     } catch (e) { console.warn(e); }
+
+    scrollToBottomSmooth(); // smooth scroll after receiving response
 
   } catch (err) {
     botMsgElem.innerHTML = "🤖: Error connecting to backend.";
     console.error(err);
+    scrollToBottomSmooth();
   }
 }
 
