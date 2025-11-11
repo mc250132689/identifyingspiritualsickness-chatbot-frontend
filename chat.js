@@ -17,7 +17,6 @@ function resizeTextarea() {
   input.style.height = input.scrollHeight + 'px';
   scrollToBottomSmooth();
 }
-
 input.addEventListener('input', resizeTextarea);
 
 function normalizeText(s) {
@@ -25,7 +24,7 @@ function normalizeText(s) {
   return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Load trained answers from backend
+// --- Load trained answers from backend ---
 let trainedAnswers = {};
 async function loadTrainedAnswers() {
   try {
@@ -50,7 +49,7 @@ async function loadTrainedAnswers() {
   }
 }
 loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 30000);
+setInterval(loadTrainedAnswers, 5000); // 🔄 Auto-refresh trained answers every 5 seconds
 
 // Append message to chat
 function appendMessage(userText, botText) {
@@ -81,7 +80,7 @@ function formatBotAnswer(text) {
     .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
 }
 
-// --- MAIN SEND FUNCTION (Merged Chat + Guidance) ---
+// --- MAIN SEND FUNCTION ---
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
@@ -101,17 +100,13 @@ async function sendMessage() {
     return;
   }
 
-  // 2️⃣ Check for symptom-like input (keyword heuristic)
-  const symptomKeywords = [
-    "voices", "see", "hearing", "insomnia", "nightmares", "dizziness",
-    "sudden pain", "bad luck", "family problem", "marriage problem", "fear"
-  ];
+  // 2️⃣ Symptom-like input detection
+  const symptomKeywords = ["voices","see","hearing","insomnia","nightmares","dizziness","sudden pain","bad luck","family problem","marriage problem","fear"];
   const isSymptom = symptomKeywords.some(k => normalizedUser.includes(k));
 
   const botMsgElem = appendMessage(`🧍: ${userText}`, null);
 
   if (isSymptom) {
-    // Call /guidance endpoint
     try {
       const res = await fetch(GUIDANCE_URL, {
         method: "POST",
@@ -119,16 +114,8 @@ async function sendMessage() {
         body: JSON.stringify({ symptoms: userText })
       });
       const data = await res.json();
-
-      let suggestionsHtml = "";
-      if (data.suggestions && data.suggestions.length > 0) {
-        suggestionsHtml = data.suggestions.map(s => `• ${s}`).join("<br>");
-      }
-      let stepsHtml = "";
-      if (data.recommended_steps && data.recommended_steps.length > 0) {
-        stepsHtml = "<br><strong>Recommended Steps:</strong><br>" + data.recommended_steps.join("<br>");
-      }
-
+      let suggestionsHtml = data.suggestions?.map(s => `• ${s}`).join("<br>") || "";
+      let stepsHtml = data.recommended_steps?.length ? "<br><strong>Recommended Steps:</strong><br>" + data.recommended_steps.join("<br>") : "";
       botMsgElem.innerHTML = `🤖: <strong>Severity:</strong> ${data.severity}<br>${suggestionsHtml}${stepsHtml}`;
       scrollToBottomSmooth();
       return;
@@ -139,7 +126,7 @@ async function sendMessage() {
     }
   }
 
-  // 3️⃣ Otherwise, call normal chat endpoint (GPT)
+  // 3️⃣ General GPT response
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -149,7 +136,7 @@ async function sendMessage() {
     const data = await res.json();
     botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
 
-    // Save to local trained cache
+    // Update local trained cache
     try {
       const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
       cached.push({ question: userText, answer: data.response, lang: 'en' });
