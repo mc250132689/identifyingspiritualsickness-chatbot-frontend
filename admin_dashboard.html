@@ -108,7 +108,6 @@
         <h3>Hadith Examples (up to 5)</h3>
         <div id="hadith-examples"></div>
       </div>
-
     </div>
   </div>
 
@@ -120,6 +119,8 @@
   const loginSection = document.getElementById("login-section");
   const dashboard = document.getElementById("dashboard");
   const statusText = document.getElementById("login-status");
+
+  let adminKey = "";
 
   function animatedDots(text) {
     return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
@@ -139,6 +140,49 @@
     }
   }
 
+  async function fetchDashboardData() {
+    if (!adminKey) return;
+    try {
+      const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(adminKey)}`);
+      const data = await res.json();
+      if (data.error) return;
+
+      document.getElementById("total-records").textContent = data.total_records;
+      document.getElementById("hadith-count").textContent = data.hadith_count;
+      document.getElementById("feedback-count").textContent = data.feedback_count;
+
+      // Recent Records
+      const recent = document.getElementById("recent-list");
+      recent.innerHTML = "";
+      data.recent_records?.slice().reverse().forEach(r => {
+        const d = document.createElement("div");
+        d.className = "small";
+        d.textContent = `${(r.lang||'en').toUpperCase()} - ${r.question || r.answer}`;
+        recent.appendChild(d);
+      });
+
+      // Top Questions
+      const top = document.getElementById("top-questions");
+      top.innerHTML = "";
+      data.top_questions?.forEach(q => {
+        const d = document.createElement("div");
+        d.className = "small";
+        d.textContent = q;
+        top.appendChild(d);
+      });
+
+      // Hadith Examples
+      const he = document.getElementById("hadith-examples");
+      he.innerHTML = "";
+      data.hadith_examples?.forEach(h => {
+        const p = document.createElement("pre");
+        p.textContent = JSON.stringify(h, null, 2);
+        he.appendChild(p);
+      });
+
+    } catch (err) { console.error("Dashboard fetch error:", err); }
+  }
+
   async function attemptLogin() {
     const key = adminKeyInput.value.trim();
     if (!key) return alert("Please enter admin key");
@@ -149,38 +193,17 @@
       const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
       const data = await res.json();
       if (data.error) return statusText.textContent = "❌ Invalid Admin Key";
+
+      adminKey = key;
       loginSection.style.display = "none";
       dashboard.style.display = "block";
+      statusText.textContent = "";
 
-      document.getElementById("total-records").textContent = data.total_records;
-      document.getElementById("hadith-count").textContent = data.hadith_count;
-      document.getElementById("feedback-count").textContent = data.feedback_count;
+      // First load
+      fetchDashboardData();
 
-      const recent = document.getElementById("recent-list");
-      recent.innerHTML = "";
-      data.recent_records?.slice().reverse().forEach(r => {
-        const d = document.createElement("div");
-        d.className = "small";
-        d.textContent = `${(r.lang||'en').toUpperCase()} - ${r.question || r.answer}`;
-        recent.appendChild(d);
-      });
-
-      const top = document.getElementById("top-questions");
-      top.innerHTML = "";
-      data.top_questions?.forEach(q => {
-        const d = document.createElement("div");
-        d.className = "small";
-        d.textContent = q;
-        top.appendChild(d);
-      });
-
-      const he = document.getElementById("hadith-examples");
-      he.innerHTML = "";
-      data.hadith_examples?.forEach(h => {
-        const p = document.createElement("pre");
-        p.textContent = JSON.stringify(h, null, 2);
-        he.appendChild(p);
-      });
+      // Set live update every 10 seconds
+      setInterval(fetchDashboardData, 10000);
 
     } catch (err) { statusText.textContent = "⚠️ Error connecting to server."; }
   }
@@ -198,16 +221,15 @@
   });
 
   document.getElementById("export-feedback-btn").addEventListener("click", async () => {
-    const key = adminKeyInput.value.trim() || prompt("Enter admin key:");
-    if (!key) return;
-    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(key)}`);
+    if (!adminKey) adminKey = prompt("Enter admin key:") || "";
+    if (!adminKey) return;
+    const res = await fetch(`${BASE_URL}/export-feedback?key=${encodeURIComponent(adminKey)}`);
     const data = await res.json();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "feedback_export.json"; a.click();
     URL.revokeObjectURL(url);
   });
-
 </script>
 </body>
 </html>
