@@ -2,42 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Train Spiritual Bot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>📊 Training Data Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    textarea {
-      width: 100%;
-      font-size: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      resize: none;
-      overflow-y: hidden;
-      line-height: 1.4;
-    }
-    #question { margin-bottom: 10px; }
-    button { padding: 10px 18px; font-size: 16px; border-radius: 10px; margin-top: 8px; cursor: pointer; }
-    #train-preview { margin-top: 20px; max-height: 400px; overflow-y: auto; }
-    .train-msg-pair { display: flex; flex-direction: column; margin-bottom: 15px; border-left: 4px solid #ccc; padding-left: 10px; background: #fff; border-radius: 10px; padding:10px; }
-    .train-user-msg, .train-bot-msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; word-wrap: break-word; margin: 5px 0; white-space: pre-wrap; }
-    .train-user-msg { align-self: flex-end; background-color: #d1e7ff; }
-    .train-bot-msg { align-self: flex-start; background-color: #e2e2e2; }
+    table { width:100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border:1px solid #ddd; padding:8px; font-size:14px; }
+    h2, h3 { margin-top: 25px; }
+    #duplicate-list div { background: #fff; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:8px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="card">
-      <h1>Train Chatbot</h1>
-      <form id="train-form">
-        <input type="text" id="question" placeholder="Enter question" required>
-        <textarea id="answer" placeholder="Enter answer" required rows="1"></textarea>
-        <button type="submit">Submit</button>
-      </form>
-      <p id="train-response"></p>
+    <h2>Training Data Analysis</h2>
+    <p>Total Q&A Pairs: <strong id="total-count">0</strong></p>
 
-      <!-- Preview trained Q&A -->
-      <div id="train-preview"></div>
-    </div>
+    <h3>Most Frequent Words</h3>
+    <canvas id="chart"></canvas>
+
+    <h3>Duplicate / Similar Questions</h3>
+    <div id="duplicate-list"></div>
+
+    <h3>Topic / Category Distribution</h3>
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Count</th><th>%</th></tr>
+      </thead>
+      <tbody id="category-table"></tbody>
+    </table>
+
+    <h3>All Training Data</h3>
+    <table id="data-table">
+      <thead>
+        <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script src="train.js"></script>
