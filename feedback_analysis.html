@@ -54,15 +54,12 @@
 </div>
 
 <script>
-const ADMIN_KEY = prompt("Enter admin key:");
 const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
 
 async function loadFeedback() {
-  if (!ADMIN_KEY) return alert("Admin key required");
-
   try {
-    const res = await fetch(`${BASE_URL}/feedback-analysis?key=${encodeURIComponent(ADMIN_KEY)}`);
-    if (!res.ok) throw new Error("Unauthorized or server error");
+    const res = await fetch(`${BASE_URL}/feedback-analysis`);
+    if (!res.ok) throw new Error("Server error");
     const data = await res.json();
 
     // Stats
@@ -93,7 +90,7 @@ async function loadFeedback() {
 
   } catch(err) {
     console.error(err);
-    alert("Failed to load feedback. Check admin key or server connection.");
+    alert("Failed to load feedback. Check server connection.");
   }
 }
 
