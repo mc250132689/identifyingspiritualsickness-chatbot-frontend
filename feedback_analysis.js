@@ -37,5 +37,15 @@ async function loadFeedback() {
   }
 }
 
+// Initial load
 loadFeedback();
-setInterval(loadFeedback, 5000);
+
+// Optional: auto-refresh every 30 seconds
+setInterval(loadFeedback, 30000);
+
+// Listen for postMessage to refresh immediately
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "refresh-feedback") {
+    loadFeedback();
+  }
+});
