@@ -49,7 +49,7 @@ async function loadTrainedAnswers() {
   }
 }
 loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 5000); // 🔄 Auto-refresh trained answers every 5 seconds
+setInterval(loadTrainedAnswers, 5000); // 🔄 Auto-refresh every 5 seconds
 
 // Append message to chat
 function appendMessage(userText, botText) {
@@ -90,11 +90,9 @@ async function sendMessage() {
 
   const normalizedUser = normalizeText(userText);
 
-  // 1️⃣ Check for trained answers
+  // 1️⃣ Check trained answers
   let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
-  if (!trainedKey) {
-    trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).includes(normalizedUser));
-  }
+  if (!trainedKey) trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).includes(normalizedUser));
   if (trainedKey) {
     appendMessage(`🧍: ${userText}`, `🤖: ${formatBotAnswer(trainedAnswers[trainedKey])}`);
     return;
@@ -158,5 +156,12 @@ input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
+  }
+});
+
+// --- Listen for feedback updates ---
+window.addEventListener("message", (event) => {
+  if (event.data.type === "refresh-feedback") {
+    loadTrainedAnswers(); // auto-refresh trained answers if new feedback submitted
   }
 });
