@@ -9,123 +9,102 @@
 <body>
   <div class="container">
     <div class="card">
-      <header style="align-items:flex-start">
-        <div class="brand">✍️</div>
-        <div>
-          <h1>Feedback Form</h1>
-          <div style="font-size:13px;color:#4b6960">Please fill this short feedback to help improve the chatbot.</div>
-        </div>
-        <div style="margin-left:auto">
-          <a href="chat.html" class="btn small">← Back to Chat</a>
-        </div>
+      <header>
+        <h2>Feedback Form</h2>
       </header>
 
       <form id="feedback-form">
-        <h3>Section 1: Participant Information</h3>
-        <input id="name" placeholder="Name" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-        <input id="student_id" placeholder="Student ID" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-        <input id="program" placeholder="Program/Faculty" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
 
-        <h3>Section 2: Chatbot usability</h3>
-        <label>4. How easy was it to interact with the chatbot?</label>
-        <select id="q4" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very easy">Very easy</option>
-          <option value="Easy">Easy</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Difficult">Difficult</option>
-          <option value="Very difficult">Very difficult</option>
+        <label>Name</label>
+        <input type="text" id="name" required>
+
+        <label>Student ID</label>
+        <input type="text" id="student_id" required>
+
+        <label>Programme</label>
+        <input type="text" id="program" required>
+
+        <hr>
+        <p><strong>Use scale 1–5:</strong> 1 = Strongly Disagree, 5 = Strongly Agree</p>
+
+        <!-- Reusable dropdown -->
+        <script>
+          function ratingOptions() {
+            return `
+              <option value="1">1 - Strongly Disagree</option>
+              <option value="2">2 - Disagree</option>
+              <option value="3">3 - Neutral</option>
+              <option value="4">4 - Agree</option>
+              <option value="5">5 - Strongly Agree</option>
+            `;
+          }
+        </script>
+
+        <label>Q4. The chatbot was easy to use</label>
+        <select id="q4" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>5. Were the chatbot's instructions clear?</label>
-        <select id="q5" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very clear">Very clear</option>
-          <option value="Clear">Clear</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Unclear">Unclear</option>
-          <option value="Very unclear">Very unclear</option>
+        <label>Q5. The responses were understandable</label>
+        <select id="q5" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>6. Any difficulties or issues encountered while using the chatbot?</label>
-        <select id="q6" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="No difficulties">No difficulties</option>
-          <option value="Minor difficulties">Minor difficulties</option>
-          <option value="Major difficulties">Major difficulties</option>
+        <label>Q6. The chatbot provided useful guidance</label>
+        <select id="q6" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <h3>Section 3: Relevance and accuracy</h3>
-        <label>7. How relevant were responses?</label>
-        <select id="q7" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very relevant">Very relevant</option>
-          <option value="Relevant">Relevant</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Irrelevant">Irrelevant</option>
-          <option value="Very irrelevant">Very irrelevant</option>
+        <label>Q7. I feel this topic is important for students</label>
+        <select id="q7" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>8. How accurate do you feel the chatbot's guidance was?</label>
-        <select id="q8" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very accurate">Very accurate</option>
-          <option value="Accurate">Accurate</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Inaccurate">Inaccurate</option>
-          <option value="Very inaccurate">Very inaccurate</option>
+        <label>Q8. I learned something new</label>
+        <select id="q8" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>9. Any incorrect or misleading responses noticed?</label>
-        <select id="q9" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
+        <label>Q9. The chatbot answers were relevant</label>
+        <select id="q9" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <h3>Section 4: Helpfulness</h3>
-        <label>10. How helpful was the chatbot in providing answers based on Islamic practices?</label>
-        <select id="q10" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very helpful">Very helpful</option>
-          <option value="Helpful">Helpful</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Not helpful">Not helpful</option>
-          <option value="Very unhelpful">Very unhelpful</option>
+        <label>Q10. The design was comfortable to use</label>
+        <select id="q10" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>11. Would you consider using this chatbot regularly for spiritual guidance answers?</label>
-        <select id="q11" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
+        <label>Q11. The chatbot improved my awareness</label>
+        <select id="q11" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>12. Suggestions to improve the chatbot?</label>
-        <textarea id="q12" placeholder="Suggestions..." style="width:100%;min-height:80px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
-
-        <h3>Section 5: Overall experience</h3>
-        <label>13. Overall, how satisfied are you with the chatbot?</label>
-        <select id="q13" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very satisfied">Very satisfied</option>
-          <option value="Satisfied">Satisfied</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Dissatisfied">Dissatisfied</option>
-          <option value="Very dissatisfied">Very dissatisfied</option>
+        <label>Q12. I would recommend this chatbot</label>
+        <select id="q12" required>
+          <script>document.write(ratingOptions())</script>
         </select>
 
-        <label>14. Any additional comments or feedback?</label>
-        <textarea id="q14" placeholder="Any additional comments..." style="width:100%;min-height:100px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
+        <label>Q13. I would like to see this improved further</label>
+        <select id="q13" required>
+          <script>document.write(ratingOptions())</script>
+        </select>
 
-        <div style="margin-top:12px;text-align:right">
-          <button type="submit" class="btn">Submit Feedback</button>
-        </div>
-        <p id="feedback-status" class="small"></p>
+        <label>Q14. The chatbot encouraged reflection</label>
+        <select id="q14" required>
+          <script>document.write(ratingOptions())</script>
+        </select>
+
+        <label>Additional Comments</label>
+        <textarea id="comments" rows="4"></textarea>
+
+        <button type="submit">Submit Feedback</button>
+        <p id="feedback-status"></p>
+
       </form>
     </div>
   </div>
 
-<script src="feedback.js"></script>
+  <script src="feedback.js"></script>
 </body>
 </html>
