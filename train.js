@@ -1,96 +1,93 @@
-const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
-const form = document.getElementById("train-form");
-const responseText = document.getElementById("train-response");
-const preview = document.getElementById("train-preview");
-const answerInput = document.getElementById("answer");
+const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 
-// --- Auto-expand textarea like chat ---
-function resizeAnswerTextarea() {
-  answerInput.style.height = 'auto';
-  answerInput.style.height = answerInput.scrollHeight + 'px';
-}
-answerInput.addEventListener('input', resizeAnswerTextarea);
-
-// --- Format answer with minimal styling ---
-function formatAnswer(text) {
-  if (!text) return "";
-  let formatted = text
-    .replace(/\r\n|\r|\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
-    .replace(/\|(.+?)\|/gs, (match) => {
-      const rows = match.trim().split("<br>").filter(r => r.trim());
-      const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
-        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
-      }).join("");
-      return `<table class="chat-table">${tableRows}</table>`;
-    });
-  return formatted;
+function normalize(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
-// --- Submit training data ---
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const question = document.getElementById("question").value.trim();
-  const answer = answerInput.value.trim();
-
-  if (!question || !answer) {
-    responseText.textContent = "Please fill both fields.";
-    return;
-  }
-
-  responseText.textContent = "Submitting...";
-
+async function loadTrainingData() {
   try {
-    const res = await fetch(TRAIN_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, answer }),
+    const res = await fetch(TRAIN_DATA_URL);
+    const data = await res.json();
+    if (!data.training_data) return;
+
+    const trainingData = data.training_data;
+    const total = trainingData.length;
+    document.getElementById("total-count").textContent = total;
+
+    // Q&A table
+    const tbody = document.querySelector("#data-table tbody");
+    tbody.innerHTML = "";
+    trainingData.forEach((item,i)=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${i+1}</td><td>${item.question}</td><td>${item.answer}</td>`;
+      tbody.appendChild(tr);
     });
 
-    const data = await res.json();
-    responseText.innerHTML = data.message || "Training data submitted successfully!";
+    // Word Frequency
+    const text = trainingData.map(x=>x.question + " " + x.answer).join(" ").toLowerCase();
+    const words = text.replace(/[^a-zA-Z0-9\s]/g,"").split(/\s+/);
+    const stopWords = ["the","is","and","of","to","a","in","it","you","for","that","with","on","as","are","be","was","i","or","from","by"];
+    const counts = {};
+    words.forEach(w=>{ if(!stopWords.includes(w)&&w.length>2) counts[w]=(counts[w]||0)+1; });
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const labels = sorted.map(x=>x[0]);
+    const values = sorted.map(x=>x[1]);
+    new Chart(document.getElementById("chart"), { type:"bar", data:{ labels,datasets:[{label:"Common Words", data:values}] }});
 
-    // Auto-clear input fields
-    document.getElementById("question").value = "";
-    answerInput.value = "";
-    resizeAnswerTextarea();
-
-    // Show preview in chat-like style
-    const formattedAnswer = formatAnswer(answer);
-    const userBubble = document.createElement("div");
-    userBubble.className = "train-user-msg";
-    userBubble.textContent = question;
-
-    const botBubble = document.createElement("div");
-    botBubble.className = "train-bot-msg";
-    botBubble.innerHTML = formattedAnswer;
-
-    const pair = document.createElement("div");
-    pair.className = "train-msg-pair";
-    pair.appendChild(userBubble);
-    pair.appendChild(botBubble);
-
-    preview.appendChild(pair);
-    preview.scrollTop = preview.scrollHeight;
-
-    // Update local trained answers cache
-    try {
-      const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
-      cached.push({ question, answer, lang: 'en' });
-      localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
-      if (window.chatAddTrainedAnswer) {
-        window.chatAddTrainedAnswer(question, answer);
+    // Duplicate detection
+    const groups = {};
+    for (let i=0;i<trainingData.length;i++){
+      const qi = normalize(trainingData[i].question);
+      for (let j=i+1;j<trainingData.length;j++){
+        const qj = normalize(trainingData[j].question);
+        if(qi && qj && qi===qj){
+          groups[qi] = groups[qi] || [];
+          groups[qi].push(trainingData[j].question);
+        }
       }
-    } catch (e) {
-      console.warn(e);
+    }
+    const duplicateContainer = document.getElementById("duplicate-list");
+    duplicateContainer.innerHTML = "";
+    if(Object.keys(groups).length===0) duplicateContainer.innerHTML="<p>No duplicates found.</p>";
+    else{
+      for(let base in groups){
+        const block = document.createElement("div");
+        block.innerHTML = `<strong>${base} (${groups[base].length} duplicates)</strong><br>- ${groups[base].join("<br>- ")}`;
+        duplicateContainer.appendChild(block);
+      }
     }
 
-  } catch (err) {
-    console.error(err);
-    responseText.textContent = "Error submitting training data.";
-  }
-});
+    // Category distribution
+    const categories = {
+      "Ruqyah & Protection":["ruqyah","jin","magic","sihr","ayn","protection","taweez"],
+      "Emotional Distress":["stress","fear","anxiety","sad","depression","worry"],
+      "Aqidah Issues":["faith","belief","doubt","deen","aqidah"],
+      "Dreams & Sleep":["dream","nightmare","sleep","insomnia"]
+    };
+    const categoryCount = {};
+    trainingData.forEach(entry=>{
+      const q = normalize(entry.question);
+      let found=false;
+      for(const cat in categories){
+        if(categories[cat].some(w=>q.includes(w))){
+          categoryCount[cat]=(categoryCount[cat]||0)+1;
+          found=true;
+        }
+      }
+      if(!found) categoryCount["Uncategorized"]=(categoryCount["Uncategorized"]||0)+1;
+    });
+
+    const catTable = document.getElementById("category-table");
+    catTable.innerHTML="";
+    for(const cat in categoryCount){
+      const pct = ((categoryCount[cat]/total)*100).toFixed(1);
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${cat}</td><td>${categoryCount[cat]}</td><td>${pct}%</td>`;
+      catTable.appendChild(row);
+    }
+
+  } catch(err){ console.error("Error loading training data",err); }
+}
+
+loadTrainingData();
+setInterval(loadTrainingData, 10000);
