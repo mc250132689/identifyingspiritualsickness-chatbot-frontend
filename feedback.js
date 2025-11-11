@@ -5,6 +5,7 @@ const status = document.getElementById("feedback-status");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   status.textContent = "Submitting...";
+
   const payload = {
     name: document.getElementById("name").value.trim(),
     student_id: document.getElementById("student_id").value.trim(),
@@ -22,6 +23,7 @@ form.addEventListener("submit", async (e) => {
     q14: document.getElementById("q14").value.trim(),
     comments: document.getElementById("q14").value.trim()
   };
+
   try {
     const res = await fetch(FEEDBACK_API, {
       method: "POST",
@@ -31,6 +33,11 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     status.textContent = data.message || "Submitted. Thank you!";
     form.reset();
+
+    // Notify feedback-analysis page to refresh
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: "refresh-feedback" }, "*");
+    }
   } catch (err) {
     console.error(err);
     status.textContent = "Error submitting feedback. Please try later.";
