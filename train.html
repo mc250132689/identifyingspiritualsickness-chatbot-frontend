@@ -46,11 +46,6 @@
       box-sizing: border-box;
     }
 
-    /* --- Auto-resize textarea --- */
-    #answer {
-      overflow-y: hidden;
-    }
-
     /* --- Train preview styling --- */
     #train-preview {
       margin-top: 15px;
@@ -76,7 +71,7 @@
     <div class="card">
       <h1>Train Chatbot</h1>
       <form id="train-form">
-        <input type="text" id="question" placeholder="Enter question" required>
+        <input type="text" id="question" placeholder="Enter question" required rows="1">
         <textarea id="answer" placeholder="Enter answer" required rows="1"></textarea>
         <button type="submit" class="btn">Submit</button>
       </form>
@@ -89,11 +84,17 @@
 
   <script src="train.js"></script>
   <script>
-    // Auto-resize answer textarea like chat input
-    const textarea = document.getElementById('answer');
-    textarea.addEventListener('input', () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
+    // Auto-resize function for inputs and textareas
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
+    const inputs = [document.getElementById('question'), document.getElementById('answer')];
+    inputs.forEach(el => {
+      el.addEventListener('input', () => autoResize(el));
+      // Initialize height on page load
+      autoResize(el);
     });
   </script>
 </body>
