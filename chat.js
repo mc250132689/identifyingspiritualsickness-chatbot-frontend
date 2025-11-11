@@ -1,29 +1,32 @@
 // Backend API URLs
-const CHAT_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
-const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
 const GUIDANCE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/guidance";
+const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 
 const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 
-// Smooth scroll
+// --- Utilities ---
 function scrollToBottomSmooth() {
   chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 }
 
-// Dynamic textarea resize
 function resizeTextarea() {
   input.style.height = 'auto';
   input.style.height = input.scrollHeight + 'px';
   scrollToBottomSmooth();
 }
+
 input.addEventListener('input', resizeTextarea);
 
-// Trained Q&A cache
-let trainedAnswers = {};
+function normalizeText(s) {
+  if (!s) return "";
+  return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
-// Load trained answers from backend and localStorage cache
+// Load trained answers from backend
+let trainedAnswers = {};
 async function loadTrainedAnswers() {
   try {
     const res = await fetch(TRAIN_DATA_URL);
@@ -42,31 +45,15 @@ async function loadTrainedAnswers() {
         const arr = JSON.parse(cached);
         trainedAnswers = {};
         arr.forEach(item => trainedAnswers[item.question.toLowerCase()] = item.answer);
-      } catch (e) { console.warn('Invalid localStorage cache', e); }
+      } catch (e) { console.error(e); }
     }
   }
 }
 loadTrainedAnswers();
 setInterval(loadTrainedAnswers, 30000);
 
-// Add new trained Q&A dynamically
-window.chatAddTrainedAnswer = (question, answer) => {
-  trainedAnswers[question.toLowerCase()] = answer;
-  try {
-    const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
-    cached.push({ question, answer, lang: 'en' });
-    localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
-  } catch (e) { console.warn(e); }
-};
-
-// Normalize text
-function normalizeText(s) {
-  if (!s) return "";
-  return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-// Append message
-function appendMessage(userText, botText, botElem=null) {
+// Append message to chat
+function appendMessage(userText, botText) {
   const container = document.createElement("div");
   container.className = "message-pair";
 
@@ -82,61 +69,87 @@ function appendMessage(userText, botText, botElem=null) {
 
   chatBox.appendChild(container);
   scrollToBottomSmooth();
-
   return botMsg;
 }
 
-// Format bot answer (support tables, headings)
 function formatBotAnswer(text) {
   if (!text) return "";
-  let formatted = text
+  return text
     .replace(/\r\n|\r|\n/g, "<br>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>")
-    .replace(/\|(.+?)\|/gs, (match) => {
-      const rows = match.trim().split("<br>").filter(r => r.trim());
-      const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c);
-        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
-      }).join("");
-      return `<table class="chat-table">${tableRows}</table>`;
-    });
-  return formatted;
+    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
 }
 
-// Send message
+// --- MAIN SEND FUNCTION (Merged Chat + Guidance) ---
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
+
   input.value = "";
   resizeTextarea();
 
   const normalizedUser = normalizeText(userText);
+
+  // 1️⃣ Check for trained answers
   let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
   if (!trainedKey) {
-    trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).startsWith(normalizedUser) || normalizeText(k).includes(normalizedUser));
+    trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).includes(normalizedUser));
   }
-
   if (trainedKey) {
     appendMessage(`🧍: ${userText}`, `🤖: ${formatBotAnswer(trainedAnswers[trainedKey])}`);
     return;
   }
 
+  // 2️⃣ Check for symptom-like input (keyword heuristic)
+  const symptomKeywords = [
+    "voices", "see", "hearing", "insomnia", "nightmares", "dizziness",
+    "sudden pain", "bad luck", "family problem", "marriage problem", "fear"
+  ];
+  const isSymptom = symptomKeywords.some(k => normalizedUser.includes(k));
+
   const botMsgElem = appendMessage(`🧍: ${userText}`, null);
 
+  if (isSymptom) {
+    // Call /guidance endpoint
+    try {
+      const res = await fetch(GUIDANCE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptoms: userText })
+      });
+      const data = await res.json();
+
+      let suggestionsHtml = "";
+      if (data.suggestions && data.suggestions.length > 0) {
+        suggestionsHtml = data.suggestions.map(s => `• ${s}`).join("<br>");
+      }
+      let stepsHtml = "";
+      if (data.recommended_steps && data.recommended_steps.length > 0) {
+        stepsHtml = "<br><strong>Recommended Steps:</strong><br>" + data.recommended_steps.join("<br>");
+      }
+
+      botMsgElem.innerHTML = `🤖: <strong>Severity:</strong> ${data.severity}<br>${suggestionsHtml}${stepsHtml}`;
+      scrollToBottomSmooth();
+      return;
+    } catch (err) {
+      botMsgElem.innerHTML = "🤖: Error connecting to backend for guidance.";
+      console.error(err);
+      return;
+    }
+  }
+
+  // 3️⃣ Otherwise, call normal chat endpoint (GPT)
   try {
-    const res = await fetch(CHAT_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userText }),
+      body: JSON.stringify({ message: userText })
     });
     const data = await res.json();
-
-    // Append bot response
     botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
 
-    // Update local trained cache
+    // Save to local trained cache
     try {
       const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
       cached.push({ question: userText, answer: data.response, lang: 'en' });
@@ -145,7 +158,6 @@ async function sendMessage() {
     } catch (e) { console.warn(e); }
 
     scrollToBottomSmooth();
-
   } catch (err) {
     botMsgElem.innerHTML = "🤖: Error connecting to backend.";
     console.error(err);
@@ -153,7 +165,7 @@ async function sendMessage() {
   }
 }
 
-// Send on button click or Enter key
+// Event listeners
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -161,20 +173,3 @@ input.addEventListener("keydown", (e) => {
     sendMessage();
   }
 });
-
-// Optional: Guidance feature integration (if you want symptom-based advice button)
-/*
-async function requestGuidance(symptomsText) {
-  try {
-    const res = await fetch(GUIDANCE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ symptoms: symptomsText }),
-    });
-    const data = await res.json();
-    appendMessage(`🧍: ${symptomsText}`, `🤖: Guidance severity: ${data.severity}<br>${data.suggestions.join("<br>")}`);
-  } catch (err) {
-    console.error(err);
-  }
-}
-*/
