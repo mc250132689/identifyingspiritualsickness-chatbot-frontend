@@ -3,6 +3,17 @@ const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
+const answerTextarea = document.getElementById("answer");
+
+// Function to dynamically resize textarea
+function resizeTextarea() {
+  answerTextarea.style.height = 'auto'; // reset height
+  answerTextarea.style.height = answerTextarea.scrollHeight + 'px'; // grow/shrink
+}
+
+// Listen for input events
+answerTextarea.addEventListener('input', resizeTextarea);
+
 function formatAnswer(text) {
   if (!text) return "";
   let formatted = text
@@ -25,7 +36,7 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const question = document.getElementById("question").value.trim();
-  const answer = document.getElementById("answer").value.trim();
+  const answer = answerTextarea.value.trim();
 
   if (!question || !answer) {
     responseText.textContent = "Please fill both fields.";
@@ -46,7 +57,8 @@ form.addEventListener("submit", async (e) => {
 
     // Auto-clear input fields
     document.getElementById("question").value = "";
-    document.getElementById("answer").value = "";
+    answerTextarea.value = "";
+    resizeTextarea(); // reset textarea height
 
     // Show preview
     const formattedAnswer = formatAnswer(answer);
