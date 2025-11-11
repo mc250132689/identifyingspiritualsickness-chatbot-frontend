@@ -22,6 +22,14 @@
     .sentiment-positive { color:green; font-weight:bold; }
     .sentiment-negative { color:red; font-weight:bold; }
     .sentiment-neutral { color:#444; font-weight:bold; }
+    #word-frequency span {
+      display:inline-block;
+      margin:3px;
+      padding:3px 6px;
+      background:#f0f5f4;
+      border-radius:4px;
+      font-size:13px;
+    }
   </style>
 </head>
 <body>
@@ -29,20 +37,19 @@
 <div class="container">
   <h2>Feedback Analysis</h2>
   <p>Total Submissions: <strong id="total-feedback">0</strong></p>
-
-  <h3>Rating Distribution</h3>
-  <canvas id="ratingChart"></canvas>
-
-  <h3>Common Words in Feedback</h3>
-  <div id="word-frequency"></div>
+  <p>Average Rating (1-5): <strong id="average-rating">0</strong></p>
 
   <h3>Sentiment Overview</h3>
+  <canvas id="sentimentChart"></canvas>
   <table>
     <thead>
       <tr><th>Sentiment</th><th>Count</th></tr>
     </thead>
     <tbody id="sentiment-table"></tbody>
   </table>
+
+  <h3>Most Frequent Words</h3>
+  <div id="word-frequency"></div>
 
   <h3>All Feedback</h3>
   <table id="feedback-table">
