@@ -2,7 +2,16 @@ const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com
 const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
+const answerInput = document.getElementById("answer");
 
+// --- Auto-expand textarea like chat ---
+function resizeAnswerTextarea() {
+  answerInput.style.height = 'auto';
+  answerInput.style.height = answerInput.scrollHeight + 'px';
+}
+answerInput.addEventListener('input', resizeAnswerTextarea);
+
+// --- Format answer with minimal styling ---
 function formatAnswer(text) {
   if (!text) return "";
   let formatted = text
@@ -21,11 +30,12 @@ function formatAnswer(text) {
   return formatted;
 }
 
+// --- Submit training data ---
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const question = document.getElementById("question").value.trim();
-  const answer = document.getElementById("answer").value.trim();
+  const answer = answerInput.value.trim();
 
   if (!question || !answer) {
     responseText.textContent = "Please fill both fields.";
@@ -46,9 +56,10 @@ form.addEventListener("submit", async (e) => {
 
     // Auto-clear input fields
     document.getElementById("question").value = "";
-    document.getElementById("answer").value = "";
+    answerInput.value = "";
+    resizeAnswerTextarea();
 
-    // Show preview
+    // Show preview in chat-like style
     const formattedAnswer = formatAnswer(answer);
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
