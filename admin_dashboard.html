@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard - Identifying Spiritual Sickness Chatbot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f0f5f4; padding: 20px; color:#1b3b3a; }
@@ -45,6 +45,7 @@
       50%, 100% { opacity: 1; }
     }
 
+    /* Responsive tweaks */
     @media(max-width: 600px){
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .btn-row { flex-direction: column; gap: 12px; }
@@ -113,8 +114,6 @@
 
 <script>
 const BASE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
-const MAX_PING_RETRIES = 10;
-let refreshInterval;
 
 const loginBtn = document.getElementById("login-btn");
 const adminKeyInput = document.getElementById("admin-key");
@@ -122,11 +121,13 @@ const loginSection = document.getElementById("login-section");
 const dashboard = document.getElementById("dashboard");
 const statusText = document.getElementById("login-status");
 
+// Animated dots helper
 function animatedDots(text) {
   return `${text} <span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
 }
 
-async function checkServerAlive(retries = 0) {
+// Ping server
+async function checkServerAlive() {
   statusText.innerHTML = animatedDots("⏳ Checking server status");
   try {
     const res = await fetch(`${BASE_URL}/ping`);
@@ -134,28 +135,20 @@ async function checkServerAlive(retries = 0) {
     statusText.textContent = "✅ Server is online!";
     return true;
   } catch (err) {
-    if (retries >= MAX_PING_RETRIES) {
-      statusText.textContent = "⚠️ Server still sleeping. Try refreshing later.";
-      console.log(err);
-      return false;
-    }
-    statusText.innerHTML = animatedDots("⚠️ Server sleeping. Waking up");
+    statusText.innerHTML = animatedDots("⚠️ Server is sleeping. Waking up");
+    console.log(err);
     await new Promise(r => setTimeout(r, 3000));
-    return checkServerAlive(retries + 1);
+    return checkServerAlive();
   }
 }
 
 // Fetch and update dashboard stats
-async function fetchDashboardStats(key) {
+async function updateDashboard(key) {
   try {
     const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
     if (!res.ok) throw new Error("Backend unreachable");
     const data = await res.json();
-    if (data.error) {
-      statusText.textContent = "❌ Unauthorized Admin Key!";
-      clearInterval(refreshInterval);
-      return;
-    }
+    if (data.error) return;
 
     document.getElementById("total-records").textContent = data.total_records;
     document.getElementById("hadith-count").textContent = data.hadith_count;
@@ -186,8 +179,10 @@ async function fetchDashboardStats(key) {
       p.textContent = JSON.stringify(h, null, 2);
       he.appendChild(p);
     });
+
   } catch (err) {
-    console.log("Error fetching stats:", err);
+    console.error(err);
+    statusText.textContent = "⚠️ Error updating dashboard.";
   }
 }
 
@@ -196,19 +191,35 @@ async function attemptLogin() {
   const key = adminKeyInput.value.trim();
   if (!key) return alert("Please enter admin key");
 
-  const serverReady = await checkServerAlive();
-  if (!serverReady) return;
-
+  await checkServerAlive();
   statusText.textContent = animatedDots("⏳ Logging in");
 
   try {
-    await fetchDashboardStats(key);
+    const res = await fetch(`${BASE_URL}/admin-stats?key=${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error("Backend unreachable");
+    const data = await res.json();
+
+    if (data.error) {
+      statusText.textContent = "❌ Unauthorized Admin Key!";
+      return;
+    }
+
     loginSection.style.display = "none";
     dashboard.style.display = "block";
-    statusText.textContent = "✅ Dashboard loaded";
+    statusText.textContent = "";
+
+    // Initial load
+    updateDashboard(key);
 
     // Auto-refresh every 5 seconds
-    refreshInterval = setInterval(() => fetchDashboardStats(key), 5000);
+    setInterval(() => updateDashboard(key), 5000);
+
+    // Listen for feedback submissions from feedback page
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "refresh-feedback") {
+        updateDashboard(key);
+      }
+    });
 
   } catch (err) {
     statusText.textContent = "⚠️ Error: Could not connect to server.";
@@ -217,7 +228,7 @@ async function attemptLogin() {
 }
 
 loginBtn.addEventListener("click", attemptLogin);
-adminKeyInput.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); attemptLogin(); } });
+adminKeyInput.addEventListener("keydown", (e) => { if(e.key==="Enter"){e.preventDefault(); attemptLogin();} });
 
 // Export buttons
 document.getElementById("export-data-btn").addEventListener("click", async () => {
