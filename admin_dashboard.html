@@ -31,6 +31,12 @@
     #view-feedback-btn { background: #facc15; color: white; }
     #view-feedback-btn:hover { background: #eab308; }
 
+    #feedback-analysis-btn { background: #0ea5e9; color: white; }
+    #feedback-analysis-btn:hover { background: #0284c7; }
+
+    #train-analysis-btn { background: #ec4899; color: white; }
+    #train-analysis-btn:hover { background: #be185d; }
+
     #export-data-btn { background: #f59e0b; color: white; }
     #export-data-btn:hover { background: #b45309; }
 
@@ -99,13 +105,16 @@
       </div>
 
       <!-- Buttons -->
-      <div class="btn-row">
-        <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
-        <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
-        <button id="view-feedback-btn" onclick="window.location.href='view_feedback.html'">📂 View Feedback Data</button>
-        <button id="export-data-btn">⬇️ Export Training JSON</button>
-        <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
-      </div>
+<div class="btn-row">
+  <button id="train-btn" onclick="window.location.href='train.html'">🚀 Go to Train Bot</button>
+  <button id="view-train-btn" onclick="window.location.href='view_training.html'">📂 View Training Data</button>
+  <button id="view-feedback-btn" onclick="window.location.href='view_feedback.html'">📂 View Feedback Data</button>
+  <button id="feedback-analysis-btn" onclick="window.location.href='feedback_analysis.html'">📊 Feedback Analysis</button>
+  <button id="train-analysis-btn" onclick="window.location.href='train_analysis.html'">📈 Training Analysis</button>
+  <button id="export-data-btn">⬇️ Export Training JSON</button>
+  <button id="export-feedback-btn">⬇️ Export Feedback (Admin)</button>
+</div>
+
 
       <!-- Hadith Examples -->
       <div style="margin-top:20px;">
