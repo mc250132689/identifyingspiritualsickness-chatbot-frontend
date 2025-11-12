@@ -5,13 +5,32 @@
   <title>🕋 Identifying Spiritual Sickness Chatbot</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
+    .container { max-width:600px; margin:20px auto; background:#fff; border-radius:10px; padding:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    h1 { text-align:center; margin-bottom:15px; color:#1f3d39; }
+    #chatbox { max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:10px; border-radius:10px; background:#fafafa; }
+    .user-msg { background:#d1e7ff; align-self:flex-end; padding:10px 15px; border-radius:20px; margin:5px 0; max-width:80%; }
+    .bot-msg { background:#e2e2e2; align-self:flex-start; padding:10px 15px; border-radius:20px; margin:5px 0; max-width:80%; }
+    #input-area { display:flex; margin-top:10px; gap:8px; flex-wrap:wrap; }
+    #user-input { flex-grow:1; padding:10px; border-radius:20px; border:1px solid #ccc; min-height:40px; resize:none; }
+    #send-btn { padding:10px 18px; border:none; border-radius:20px; background:#1f3d39; color:white; cursor:pointer; }
+    #send-btn:hover { background:#335b53; }
+    @media(max-width:480px){
+      #chatbox { max-height:300px; }
+      #user-input { min-height:35px; }
+    }
+  </style>
 </head>
 <body>
+
 <div class="container">
-  <h1>🕋 Spiritual Sickness Chatbot</h1>
-  <div id="chatbox"></div>
-  <textarea id="user-input" placeholder="Type your question..."></textarea>
-  <button id="send-btn">Send</button>
+  <h1>🕋 Identifying Spiritual Sickness Chatbot</h1>
+  <div id="chatbox" style="display:flex; flex-direction:column;"></div>
+  <div id="input-area">
+    <textarea id="user-input" placeholder="Type your question..."></textarea>
+    <button id="send-btn">Send</button>
+  </div>
 </div>
 
 <script>
@@ -46,7 +65,8 @@ function addMessage(msg, sender){
 }
 
 sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keypress", e=>{ if(e.key==="Enter") sendMessage(); });
+input.addEventListener("keypress", e=>{ if(e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 </script>
+
 </body>
 </html>
