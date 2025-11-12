@@ -1,47 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>📊 Feedback Analysis</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>📊 Feedback Analysis</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9f9f9; }
+    .container { max-width: 1200px; margin: auto; padding:20px; background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+    h2,h3 { margin-top:25px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px;}
+    th, td { border:1px solid #ccc; padding:8px; font-size:14px; text-align:left;}
+    th { background:#f0f0f0; }
+    .sentiment-positive { color:green; font-weight:bold; }
+    .sentiment-negative { color:red; font-weight:bold; }
+    .sentiment-neutral { color:#444; font-weight:bold; }
+    #word-frequency span { display:inline-block; margin:3px; padding:3px 6px; background:#e0f2f1; border-radius:4px; font-size:13px; }
+    .btn { padding:8px 16px; border:none; border-radius:6px; background:#16a34a; color:#fff; cursor:pointer; transition:0.2s; }
+    .btn:hover { background:#138a3a; }
+  </style>
 </head>
 <body>
 <div class="container">
-<h2>Feedback Analysis</h2>
-<p>Total Submissions: <strong id="total-feedback">0</strong></p>
-<p>Average Rating: <strong id="average-rating">0</strong></p>
-<button onclick="exportCSV()">Export CSV</button>
-<canvas id="ratingChart" height="80"></canvas>
-<canvas id="sentimentChart" height="80"></canvas>
-<div id="word-frequency"></div>
-<table id="feedback-table"><thead></thead><tbody></tbody></table>
+  <h2>Feedback Analysis</h2>
+  <p>Total Submissions: <strong id="total-feedback">0</strong></p>
+  <p>Average Rating: <strong id="average-rating">0</strong></p>
+  <button class="btn" onclick="exportCSV()">Export CSV</button>
+
+  <h3>Ratings Distribution</h3>
+  <canvas id="ratingChart" height="80"></canvas>
+
+  <h3>Sentiment Overview</h3>
+  <canvas id="sentimentChart" height="80"></canvas>
+  <table>
+    <thead><tr><th>Sentiment</th><th>Count</th></tr></thead>
+    <tbody id="sentiment-table"></tbody>
+  </table>
+
+  <h3>Common Words in Feedback</h3>
+  <div id="word-frequency"></div>
+
+  <h3>All Feedback</h3>
+  <table id="feedback-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Name</th><th>Student ID</th><th>Program</th><th>Responses (Q4-Q13)</th><th>Suggestions / Comments</th><th>Sentiment</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script>
 const FEEDBACK_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
 
-async function loadFeedback() {
+// Utility to calculate word frequency
+function getWordFrequency(feedbackArr){
+  const words = feedbackArr.map(f=>f.q14 || "").join(" ").toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/);
+  const freq = {};
+  words.forEach(w=>{ if(w) freq[w] = (freq[w]||0)+1; });
+  return freq;
+}
+
+// Export CSV
+function exportCSV(){
+  fetch(FEEDBACK_URL).then(r=>r.json()).then(data=>{
+    if(!data.length) return alert("No data to export!");
+    const csvRows = [];
+    const headers = ["Name","Student ID","Program","Q4","Q5","Q6","Q7","Q8","Q9","Q10","Q11","Q12","Q13","Q14"];
+    csvRows.push(headers.join(","));
+    data.forEach(f=>{
+      const row = [f.name,f.student_id,f.program,f.q4,f.q5,f.q6,f.q7,f.q8,f.q9,f.q10,f.q11,f.q12,f.q13,f.q14];
+      csvRows.push(row.map(v=>`"${v||''}"`).join(","));
+    });
+    const blob = new Blob([csvRows.join("\n")],{type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download="feedback.csv"; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+async function loadFeedback(){
   const res = await fetch(FEEDBACK_URL);
   const feedback = await res.json();
   document.getElementById("total-feedback").textContent = feedback.length;
+
+  const ratingLabels = ["Very easy","Easy","Neutral","Difficult","Very difficult"];
+  const ratingCount = ratingLabels.reduce((acc,label)=>({...acc,[label]:0}),{});
+  let ratingSum = 0;
+
+  const sentimentCount = {Positive:0,Negative:0,Neutral:0};
   const tbody = document.querySelector("#feedback-table tbody");
   tbody.innerHTML = "";
+
   feedback.forEach((f,i)=>{
+    const ratingIndex = ratingLabels.indexOf(f.q4);
+    if(ratingIndex>=0) ratingSum += ratingIndex+1;
+    ratingCount[f.q4] = (ratingCount[f.q4]||0)+1;
+
+    const sentiment = "Neutral";
+    sentimentCount[sentiment]++;
+
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i+1}</td><td>${f.name||"-"}</td><td>${f.student_id||"-"}</td><td>${f.program||"-"}</td><td>${f.q14||"-"}</td>`;
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${f.name||"-"}</td>
+      <td>${f.student_id||"-"}</td>
+      <td>${f.program||"-"}</td>
+      <td>
+        Q4:${f.q4||"-"} | Q5:${f.q5||"-"} | Q6:${f.q6||"-"}<br>
+        Q7:${f.q7||"-"} | Q8:${f.q8||"-"} | Q9:${f.q9||"-"}<br>
+        Q10:${f.q10||"-"} | Q11:${f.q11||"-"} | Q12:${f.q12||"-"}<br>
+        Q13:${f.q13||"-"}
+      </td>
+      <td>${f.q14||"-"}</td>
+      <td class="sentiment-neutral">${sentiment}</td>
+    `;
     tbody.appendChild(tr);
   });
-  window.feedbackData = feedback;
-}
 
-function exportCSV(){
-  if(!window.feedbackData?.length) return alert("No feedback to export.");
-  const csv = window.feedbackData.map(f=>[f.name,f.student_id,f.program,f.q14].join(",")).join("\n");
-  const blob = new Blob([csv],{type:"text/csv"});
-  const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-  link.download = "feedback.csv"; link.click();
+  document.getElementById("average-rating").textContent = feedback.length? (ratingSum/feedback.length).toFixed(2) : 0;
+
+  // Ratings chart
+  const ctx1 = document.getElementById("ratingChart").getContext("2d");
+  new Chart(ctx1, {type:"bar", data:{
+    labels:Object.keys(ratingCount),
+    datasets:[{label:"Rating Count", data:Object.values(ratingCount), backgroundColor:"#3b82f6"}]
+  }, options:{responsive:true, plugins:{legend:{display:false}}}});
+
+  // Sentiment chart
+  const ctx2 = document.getElementById("sentimentChart").getContext("2d");
+  new Chart(ctx2, {type:"pie", data:{
+    labels:Object.keys(sentimentCount),
+    datasets:[{data:Object.values(sentimentCount), backgroundColor:["#16a34a","#ef4444","#fbbf24"]}]
+  }, options:{responsive:true}});
+
+  // Word frequency
+  const wordFreq = getWordFrequency(feedback);
+  const wordDiv = document.getElementById("word-frequency");
+  wordDiv.innerHTML = "";
+  Object.entries(wordFreq).sort((a,b)=>b[1]-a[1]).slice(0,30).forEach(([w,c])=>{
+    const span = document.createElement("span");
+    span.textContent=`${w} (${c})`;
+    wordDiv.appendChild(span);
+  });
+
+  // Sentiment table
+  const sentimentTable = document.getElementById("sentiment-table");
+  sentimentTable.innerHTML="";
+  Object.entries(sentimentCount).forEach(([k,v])=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML=`<td>${k}</td><td>${v}</td>`;
+    sentimentTable.appendChild(tr);
+  });
 }
 
 loadFeedback();
