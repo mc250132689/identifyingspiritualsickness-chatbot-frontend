@@ -2,43 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Submit Feedback</title>
+<title>Submit Feedback - Identifying Spiritual Sickness Chatbot</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  .container { max-width:600px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+  h1 { text-align:center; color:#1f3d39; }
+  .form-group { margin-bottom:12px; }
+  input, select, textarea { width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; font-size:14px; }
+  button { padding:10px 18px; border:none; border-radius:20px; background:#1f3d39; color:white; cursor:pointer; }
+  button:hover { background:#335b53; }
+</style>
 </head>
 <body>
 <div class="container">
-  <h2>Feedback Form</h2>
+  <h1>📋 Feedback Form</h1>
   <form id="feedback-form">
-    <input type="text" name="name" placeholder="Name">
-    <input type="text" name="student_id" placeholder="Student ID">
-    <input type="text" name="program" placeholder="Program">
-    <label>Chatbot Usability</label>
-    <select name="q4">
-      <option>Very easy</option><option>Easy</option><option>Neutral</option><option>Difficult</option><option>Very difficult</option>
-    </select>
-    <textarea name="q14" placeholder="Additional comments"></textarea>
-    <button type="submit">Submit</button>
+    <div class="form-group"><input type="text" id="name" placeholder="Name"></div>
+    <div class="form-group"><input type="text" id="student_id" placeholder="Student ID"></div>
+    <div class="form-group"><input type="text" id="program" placeholder="Program"></div>
+    <div class="form-group">
+      <label>Chatbot Usability (Q4)</label>
+      <select id="q4"><option>Very easy</option><option>Easy</option><option>Neutral</option><option>Difficult</option><option>Very difficult</option></select>
+    </div>
+    <div class="form-group"><textarea id="q5" placeholder="Clarity of instructions"></textarea></div>
+    <div class="form-group"><textarea id="q6" placeholder="Difficulty"></textarea></div>
+    <div class="form-group"><textarea id="q7" placeholder="Relevance"></textarea></div>
+    <div class="form-group"><textarea id="q8" placeholder="Accuracy"></textarea></div>
+    <div class="form-group"><textarea id="q9" placeholder="Misleading responses"></textarea></div>
+    <div class="form-group"><textarea id="q10" placeholder="Helpfulness"></textarea></div>
+    <div class="form-group"><textarea id="q11" placeholder="Would use again"></textarea></div>
+    <div class="form-group"><textarea id="q12" placeholder="Suggestions"></textarea></div>
+    <div class="form-group"><textarea id="q13" placeholder="Overall satisfaction"></textarea></div>
+    <div class="form-group"><textarea id="q14" placeholder="Additional comments"></textarea></div>
+    <button type="submit">Submit Feedback</button>
   </form>
-  <p id="status-msg"></p>
 </div>
 
 <script>
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/feedback";
 
 document.getElementById("feedback-form").addEventListener("submit", async e=>{
   e.preventDefault();
-  const form = Object.fromEntries(new FormData(e.target));
-  try {
-    await fetch(`${API_URL}/submit-feedback`, {
-      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form)
-    });
-    document.getElementById("status-msg").textContent = "✅ Feedback submitted!";
-    e.target.reset();
-    window.postMessage({type:"refresh-feedback"}, "*");
-  } catch(err) {
-    document.getElementById("status-msg").textContent = "❌ Failed to submit feedback.";
-  }
+  const payload = {
+    name: document.getElementById("name").value,
+    student_id: document.getElementById("student_id").value,
+    program: document.getElementById("program").value,
+    q4: document.getElementById("q4").value,
+    q5: document.getElementById("q5").value,
+    q6: document.getElementById("q6").value,
+    q7: document.getElementById("q7").value,
+    q8: document.getElementById("q8").value,
+    q9: document.getElementById("q9").value,
+    q10: document.getElementById("q10").value,
+    q11: document.getElementById("q11").value,
+    q12: document.getElementById("q12").value,
+    q13: document.getElementById("q13").value,
+    q14: document.getElementById("q14").value
+  };
+  try{
+    const res = await fetch(API_URL,{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+    if(res.ok) { alert("Feedback submitted successfully!"); document.getElementById("feedback-form").reset(); }
+    else alert("Failed to submit feedback.");
+  } catch(e){ alert("Error submitting feedback."); }
 });
 </script>
 </body>
