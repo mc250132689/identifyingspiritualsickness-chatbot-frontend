@@ -3,36 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <title>Train Chatbot</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  .container { max-width:600px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+  h1 { text-align:center; color:#1f3d39; }
+  textarea,input { width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ccc; }
+  button { padding:10px 18px; border:none; border-radius:20px; background:#1f3d39; color:white; cursor:pointer; }
+  button:hover { background:#335b53; }
+</style>
 </head>
 <body>
 <div class="container">
-<h2>Train Chatbot</h2>
-<form id="train-form">
-  <input type="text" name="question" placeholder="Question">
-  <textarea name="answer" placeholder="Answer"></textarea>
-  <select name="lang">
-    <option value="en">English</option>
-    <option value="ms">Malay</option>
-    <option value="ar">Arabic</option>
-  </select>
-  <button type="submit">Submit</button>
-</form>
-<p id="status-msg"></p>
+<h1>📚 Train Chatbot</h1>
+<input type="text" id="question" placeholder="Question">
+<textarea id="answer" placeholder="Answer"></textarea>
+<select id="lang"><option value="en">English</option><option value="ms">Malay</option><option value="ar">Arabic</option></select>
+<button id="train-btn">Train</button>
 </div>
 
 <script>
-const TRAIN_API = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+const questionEl = document.getElementById("question");
+const answerEl = document.getElementById("answer");
+const langEl = document.getElementById("lang");
+const trainBtn = document.getElementById("train-btn");
 
-document.getElementById("train-form").addEventListener("submit", async e=>{
-  e.preventDefault();
-  const form = Object.fromEntries(new FormData(e.target));
+trainBtn.addEventListener("click", async ()=>{
+  const payload = { question: questionEl.value, answer: answerEl.value, lang: langEl.value };
+  if(!payload.question||!payload.answer){ return alert("Please enter both question and answer."); }
   try{
-    await fetch(TRAIN_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    document.getElementById("status-msg").textContent = "✅ Training data submitted!";
-    e.target.reset();
-  } catch(err){ document.getElementById("status-msg").textContent = "❌ Failed to submit."; }
+    const res = await fetch(API_URL,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+    if(res.ok){ alert("Training data added!"); questionEl.value=""; answerEl.value=""; }
+    else alert("Failed to add training data.");
+  } catch(e){ alert("Error training chatbot."); }
 });
 </script>
 </body>
