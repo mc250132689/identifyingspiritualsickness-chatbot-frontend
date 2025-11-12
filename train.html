@@ -1,101 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Train Spiritual Bot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* --- Button style (same as chat.html) --- */
-    .btn {
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 10px;
-      transition: background 0.2s;
-      text-align: center;
-      display: inline-block;
-      text-decoration: none;
-      cursor: pointer;
-      border: none;
-      background-color: #4b6960;
-      color: white;
-      flex-shrink: 0;
-    }
-    .btn:hover { background-color: #3b5e53; }
-
-    /* --- Form container --- */
-    #train-form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    /* --- Input & textarea styles like chat.html --- */
-    #train-form input,
-    #train-form textarea {
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      resize: none;
-      overflow-y: hidden;
-      min-height: 40px;
-      max-height: 150px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* --- Train preview styling --- */
-    #train-preview {
-      margin-top: 15px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      background: #f9fdfb;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    @media (max-width: 600px) {
-      .btn { width: 100%; font-size: 16px; padding: 12px 20px; }
-      #train-form input, #train-form textarea { font-size: 16px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Train Chatbot</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>Train Chatbot</h1>
-      <form id="train-form">
-        <input type="text" id="question" placeholder="Enter question" required rows="1">
-        <textarea id="answer" placeholder="Enter answer" required rows="1"></textarea>
-        <button type="submit" class="btn">Submit</button>
-      </form>
-      <p id="train-response"></p>
+<div class="container">
+<h2>Train Chatbot</h2>
+<form id="train-form">
+  <input type="text" name="question" placeholder="Question">
+  <textarea name="answer" placeholder="Answer"></textarea>
+  <select name="lang">
+    <option value="en">English</option>
+    <option value="ms">Malay</option>
+    <option value="ar">Arabic</option>
+  </select>
+  <button type="submit">Submit</button>
+</form>
+<p id="status-msg"></p>
+</div>
 
-      <!-- Preview trained Q&A -->
-      <div id="train-preview"></div>
-    </div>
-  </div>
+<script>
+const TRAIN_API = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 
-  <script src="train.js"></script>
-  <script>
-    // Auto-resize function for inputs and textareas
-    function autoResize(el) {
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
-    }
-
-    const inputs = [document.getElementById('question'), document.getElementById('answer')];
-    inputs.forEach(el => {
-      el.addEventListener('input', () => autoResize(el));
-      // Initialize height on page load
-      autoResize(el);
-    });
-  </script>
+document.getElementById("train-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+  try{
+    await fetch(TRAIN_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
+    document.getElementById("status-msg").textContent = "✅ Training data submitted!";
+    e.target.reset();
+  } catch(err){ document.getElementById("status-msg").textContent = "❌ Failed to submit."; }
+});
+</script>
 </body>
 </html>
