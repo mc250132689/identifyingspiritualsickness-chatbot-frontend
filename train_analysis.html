@@ -1,37 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Training Data Analysis</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>📊 Training Data Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9f9f9; }
+    .container { max-width:1200px; margin:auto; padding:20px; background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+    h2,h3 { margin-top:25px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px;}
+    th, td { border:1px solid #ccc; padding:8px; font-size:14px; text-align:left;}
+    th { background:#f0f0f0; }
+    #duplicate-list div { background:#f0f7f7; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:8px; }
+    #word-frequency span { display:inline-block; margin:3px; padding:3px 6px; background:#e0f2f1; border-radius:4px; font-size:13px; }
+    .btn { padding:8px 16px; border:none; border-radius:6px; background:#0d9488; color:#fff; cursor:pointer; transition:0.2s; }
+    .btn:hover { background:#0f766e; }
+  </style>
 </head>
 <body>
 <div class="container">
-<h2>Training Data Analysis</h2>
-<p>Total Q&A Pairs: <strong id="total-count">0</strong></p>
-<canvas id="wordChart" height="80"></canvas>
-<table id="data-table"><thead><tr><th>#</th><th>Question</th><th>Answer</th></tr></thead><tbody></tbody></table>
+  <h2>Training Data Analysis</h2>
+  <p>Total Q&A Pairs: <strong id="total-count">0</strong></p>
+  <button class="btn" onclick="exportCSV()">Export CSV</button>
+
+  <h3>Most Frequent Words</h3>
+  <canvas id="wordChart" height="80"></canvas>
+
+  <h3>Duplicate / Similar Questions</h3>
+  <div id="duplicate-list"></div>
+
+  <h3>Topic / Category Distribution</h3>
+  <canvas id="categoryChart" height="80"></canvas>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Count</th><th>%</th></tr>
+    </thead>
+    <tbody id="category-table"></tbody>
+  </table>
+
+  <h3>All Training Data</h3>
+  <table id="data-table">
+    <thead>
+      <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script>
 const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 
-async function loadTrainingData() {
-  const res = await fetch(TRAIN_DATA_URL);
-  const data = await res.json();
-  const trainingData = data.training_data;
-  document.getElementById("total-count").textContent = trainingData.length;
-  const tbody = document.querySelector("#data-table tbody");
-  tbody.innerHTML = "";
-  trainingData.forEach((d,i)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i+1}</td><td>${d.question}</td><td>${d.answer}</td>`;
-    tbody.appendChild(tr);
-  });
-  window.trainingData = trainingData;
+function normalize(text){
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();
 }
+
+async function loadTrainingData(){
+  try{
+    const res = await fetch(TRAIN_DATA_URL);
+    const data = await res.json();
+    if(!data.training_data) return;
+    const trainingData = data.training_data;
+    const total = trainingData.length;
+    document.getElementById("total-count").textContent = total;
+
+    // Q&A table
+    const tbody = document.querySelector("#data-table tbody");
+    tbody.innerHTML = "";
+    trainingData.forEach((item,i)=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${i+1}</td><td>${item.question}</td><td>${item.answer}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Word frequency
+    const text = trainingData.map(x=>x.question + " " + x.answer).join(" ").toLowerCase();
+    const words = text.replace(/[^a-zA-Z0-9\s]/g,"").split(/\s+/);
+    const stopWords = ["the","is","and","of","to","a","in","it","you","for","that","with","on","as","are","be","was","i","or","from","by"];
+    const counts = {};
+    words.forEach(w=>{ if(!stopWords.includes(w)&&w.length>2) counts[w]=(counts[w]||0)+1; });
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    const labels = sorted.map(x=>x[0]);
+    const values = sorted.map(x=>x[1]);
+    new Chart(document.getElementById("wordChart"), { type:"bar", data:{labels,datasets:[{label:"Common Words", data:values, backgroundColor:"#0d9488"}] }});
+
+    document.getElementById("word-frequency").innerHTML = sorted.map(w=>`<span>${w[0]} (${w[1]})</span>`).join(" ");
+
+    // Duplicate detection
+    const groups = {};
+    for(let i=0;i<trainingData.length;i++){
+      const qi = normalize(trainingData[i].question);
+      for(let j=i+1;j<trainingData.length;j++){
+        const qj = normalize(trainingData[j].question);
+        if(qi && qj && qi===qj){
+          groups[qi] = groups[qi] || [];
+          groups[qi].push(trainingData[j].question);
+        }
+      }
+    }
+    const duplicateContainer = document.getElementById("duplicate-list");
+    duplicateContainer.innerHTML = "";
+    if(Object.keys(groups).length===0) duplicateContainer.innerHTML="<p>No duplicates found.</p>";
+    else{
+      for(let base in groups){
+        const block = document.createElement("div");
+        block.innerHTML = `<strong>${base} (${groups[base].length} duplicates)</strong><br>- ${groups[base].join("<br>- ")}`;
+        duplicateContainer.appendChild(block);
+      }
+    }
+
+    // Category distribution
+    const categories = {
+      "Ruqyah & Protection":["ruqyah","jin","magic","sihr","ayn","protection","taweez"],
+      "Emotional Distress":["stress","fear","anxiety","sad","depression","worry"],
+      "Aqidah Issues":["faith","belief","doubt","deen","aqidah"],
+      "Dreams & Sleep":["dream","nightmare","sleep","insomnia"]
+    };
+    const categoryCount = {};
+    trainingData.forEach(entry=>{
+      const q = normalize(entry.question);
+      let found=false;
+      for(const cat in categories){
+        if(categories[cat].some(w=>q.includes(w))){
+          categoryCount[cat]=(categoryCount[cat]||0)+1;
+          found=true;
+        }
+      }
+      if(!found) categoryCount["Uncategorized"]=(categoryCount["Uncategorized"]||0)+1;
+    });
+
+    const catTable = document.getElementById("category-table");
+    catTable.innerHTML="";
+    const catLabels = [];
+    const catValues = [];
+    for(const cat in categoryCount){
+      const pct = ((categoryCount[cat]/total)*100).toFixed(1);
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${cat}</td><td>${categoryCount[cat]}</td><td>${pct}%</td>`;
+      catTable.appendChild(row);
+      catLabels.push(cat);
+      catValues.push(categoryCount[cat]);
+    }
+
+    // Category chart
+    new Chart(document.getElementById("categoryChart"),{
+      type:"pie",
+      data:{
+        labels: catLabels,
+        datasets:[{data: catValues, backgroundColor:["#0d9488","#0284c7","#16a34a","#f97316","#e11d48"]}]
+      }
+    });
+
+    window.trainingData = trainingData; // for CSV export
+  } catch(err){ console.error("Error loading training data",err); }
+}
+
+function exportCSV(){
+  if(!window.trainingData || !window.trainingData.length) return alert("No training data to export.");
+  const rows = [["Question","Answer"]];
+  window.trainingData.forEach(f=>{
+    rows.push([f.question,f.answer]);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${(v||"").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv],{type:"text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "training_data_report.csv";
+  link.click();
+}
+
 loadTrainingData();
 setInterval(loadTrainingData,10000);
 </script>
