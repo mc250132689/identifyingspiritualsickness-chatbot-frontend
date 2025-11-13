@@ -53,33 +53,33 @@
 </div>
 
 <script>
-const FEEDBACK_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
-const HF_API_KEY = "YOUR_HF_API_KEY_HERE";
-const MODEL_URL = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest";
+const FEEDBACK_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/export-feedback?key=mc250132689";
+const SENTIMENT_API = "https://identifyingspiritualsickness-chatbot.onrender.com/sentiment";
 
 async function getSentimentAI(text){
   try{
-    const res = await fetch(MODEL_URL,{
-      method:"POST",
-      headers:{
-        "Authorization": `Bearer ${HF_API_KEY}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({inputs:text})
+    const res = await fetch(SENTIMENT_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
     });
     const result = await res.json();
     if(!Array.isArray(result) || !result[0]) return {label:"Neutral", class:"sentiment-neutral"};
     const sorted = result[0].sort((a,b)=>b.score-a.score)[0];
-    if(sorted.label.toLowerCase().includes("positive")) return {label:"Positive", class:"sentiment-positive"};
-    if(sorted.label.toLowerCase().includes("negative")) return {label:"Negative", class:"sentiment-negative"};
+    const label = sorted.label.toLowerCase();
+    if(label.includes("positive")) return {label:"Positive", class:"sentiment-positive"};
+    if(label.includes("negative")) return {label:"Negative", class:"sentiment-negative"};
     return {label:"Neutral", class:"sentiment-neutral"};
-  } catch { return {label:"Neutral", class:"sentiment-neutral"}; }
+  } catch {
+    return {label:"Neutral", class:"sentiment-neutral"};
+  }
 }
 
 async function loadFeedback(){
   try{
     const res = await fetch(FEEDBACK_URL);
-    const feedback = await res.json();
+    const data = await res.json();
+    const feedback = data.feedback || [];
     document.getElementById("total-feedback").textContent = feedback.length;
 
     let sentimentCount = {Positive:0, Negative:0, Neutral:0};
@@ -93,7 +93,8 @@ async function loadFeedback(){
       const sentiment = await getSentimentAI(f.q14 || "");
       sentimentCount[sentiment.label]++;
       ratingCount[f.q4] = (ratingCount[f.q4]||0)+1;
-      if(["Very easy","Easy","Neutral","Difficult","Very difficult"].includes(f.q4)) ratingSum += ["Very easy","Easy","Neutral","Difficult","Very difficult"].indexOf(f.q4)+1;
+      if(["Very easy","Easy","Neutral","Difficult","Very difficult"].includes(f.q4)) 
+          ratingSum += ["Very easy","Easy","Neutral","Difficult","Very difficult"].indexOf(f.q4)+1;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -113,7 +114,7 @@ async function loadFeedback(){
       tbody.appendChild(tr);
     }
 
-    document.getElementById("average-rating").textContent = feedback.length? (ratingSum/feedback.length).toFixed(2):0;
+    document.getElementById("average-rating").textContent = feedback.length ? (ratingSum/feedback.length).toFixed(2) : 0;
 
     document.getElementById("sentiment-table").innerHTML = `
       <tr><td>Positive</td><td>${sentimentCount.Positive}</td></tr>
