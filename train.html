@@ -60,6 +60,10 @@
       overflow-y: auto;
     }
 
+    .train-msg-pair { display: flex; flex-direction: column; gap: 4px; }
+    .train-user-msg { background: #d1e7dd; padding: 10px; border-radius: 12px; align-self: flex-start; }
+    .train-bot-msg { background: #ffffff; border: 1px solid #ccc; padding: 10px; border-radius: 12px; align-self: flex-start; }
+
     @media (max-width: 600px) {
       .btn { width: 100%; font-size: 16px; padding: 12px 20px; }
       #train-form input, #train-form textarea { font-size: 16px; }
@@ -71,7 +75,7 @@
     <div class="card">
       <h1>Train Chatbot</h1>
       <form id="train-form">
-        <input type="text" id="question" placeholder="Enter question" required rows="1">
+        <input type="text" id="question" placeholder="Enter question" required>
         <textarea id="answer" placeholder="Enter answer" required rows="1"></textarea>
         <button type="submit" class="btn">Submit</button>
       </form>
@@ -83,57 +87,40 @@
   </div>
 
   <script>
-    // Auto-resize function for inputs and textareas
-    function autoResize(el) {
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
-    }
+const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 
-    const inputs = [document.getElementById('question'), document.getElementById('answer')];
-    inputs.forEach(el => {
-      el.addEventListener('input', () => autoResize(el));
-      // Initialize height on page load
-      autoResize(el);
-    });
-
-    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
 const form = document.getElementById("train-form");
 const responseText = document.getElementById("train-response");
 const preview = document.getElementById("train-preview");
 
+const questionInput = document.getElementById("question");
 const answerTextarea = document.getElementById("answer");
 
-// Function to dynamically resize textarea
-function resizeTextarea() {
-  answerTextarea.style.height = 'auto'; // reset height
-  answerTextarea.style.height = answerTextarea.scrollHeight + 'px'; // grow/shrink
+// Auto-resize textareas
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
+[questionInput, answerTextarea].forEach(el => {
+  el.addEventListener('input', () => autoResize(el));
+  autoResize(el);
+});
 
-// Listen for input events
-answerTextarea.addEventListener('input', resizeTextarea);
-
+// Format answer similar to chat.html
 function formatAnswer(text) {
   if (!text) return "";
-  let formatted = text
+  return text
     .replace(/\r\n|\r|\n/g, "<br>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>")
-    .replace(/\|(.+?)\|/gs, (match) => {
-      const rows = match.trim().split("<br>").filter(r => r.trim());
-      const tableRows = rows.map(row => {
-        const cols = row.split("|").map(c => c.trim()).filter(c => c !== "");
-        return "<tr>" + cols.map(c => `<td>${c}</td>`).join("") + "</tr>";
-      }).join("");
-      return `<table class="chat-table">${tableRows}</table>`;
-    });
-  return formatted;
+    .replace(/\#\#\s(.*?)(\n|$)/g, "<h3>$1</h3>");
 }
 
+// Submit training data
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const question = document.getElementById("question").value.trim();
+  const question = questionInput.value.trim();
   const answer = answerTextarea.value.trim();
 
   if (!question || !answer) {
@@ -149,24 +136,23 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, answer }),
     });
-
     const data = await res.json();
     responseText.innerHTML = data.message || "Training data submitted successfully!";
 
-    // Auto-clear input fields
-    document.getElementById("question").value = "";
+    // Clear inputs
+    questionInput.value = "";
     answerTextarea.value = "";
-    resizeTextarea(); // reset textarea height
+    autoResize(questionInput);
+    autoResize(answerTextarea);
 
     // Show preview
-    const formattedAnswer = formatAnswer(answer);
     const userBubble = document.createElement("div");
     userBubble.className = "train-user-msg";
     userBubble.textContent = question;
 
     const botBubble = document.createElement("div");
     botBubble.className = "train-bot-msg";
-    botBubble.innerHTML = formattedAnswer;
+    botBubble.innerHTML = formatAnswer(answer);
 
     const pair = document.createElement("div");
     pair.className = "train-msg-pair";
@@ -179,13 +165,15 @@ form.addEventListener("submit", async (e) => {
     // Update local trained answers cache
     try {
       const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
-      cached.push({ question, answer, lang: 'en' });
-      localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
+      if (!cached.some(e => e.question.toLowerCase() === question.toLowerCase())) {
+        cached.push({ question, answer, lang: 'en' });
+        localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
+      }
       if (window.chatAddTrainedAnswer) {
         window.chatAddTrainedAnswer(question, answer);
       }
-    } catch (e) {
-      console.warn(e);
+    } catch (err) {
+      console.warn(err);
     }
 
   } catch (err) {
@@ -193,7 +181,6 @@ form.addEventListener("submit", async (e) => {
     responseText.textContent = "Error submitting training data.";
   }
 });
-
   </script>
 </body>
 </html>
