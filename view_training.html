@@ -57,136 +57,175 @@
 
   <div id="training-container"></div>
 
-<script>
-const container = document.getElementById("training-container");
-const refreshBtn = document.getElementById("refresh-btn");
-const searchInput = document.getElementById("search-input");
-const langFilter = document.getElementById("lang-filter");
-const exportBtn = document.getElementById("export-btn");
-const importBtn = document.getElementById("import-btn");
-const importFile = document.getElementById("import-file");
+  <script>
+    const container = document.getElementById("training-container");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const searchInput = document.getElementById("search-input");
+    const langFilter = document.getElementById("lang-filter");
+    const exportBtn = document.getElementById("export-btn");
+    const importBtn = document.getElementById("import-btn");
+    const importFile = document.getElementById("import-file");
 
-const statusTotal = document.getElementById("status-total");
-const statusRefresh = document.getElementById("status-refresh");
-const statusImport = document.getElementById("status-import");
+    // Status elements
+    const statusTotal = document.getElementById("status-total");
+    const statusRefresh = document.getElementById("status-refresh");
+    const statusImport = document.getElementById("status-import");
 
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
-const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
-let trainingData = [];
+    const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
+    const TRAIN_API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/train";
+    let trainingData = [];
 
-async function loadTrainingData() {
-  try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    trainingData = data.training_data.reverse();
-    displayData(trainingData);
-    updateStatus();
-    localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData));
-  } catch (err) {
-    const cached = localStorage.getItem('trained_answers_cache');
-    if(cached){ trainingData = JSON.parse(cached).reverse(); displayData(trainingData); updateStatus(); }
-    else { container.innerHTML = "Error loading data."; }
-  }
-}
-
-function displayData(data) {
-  container.innerHTML = "";
-  if(!data.length){ container.innerHTML = "<p>No training data found.</p>"; return; }
-  data.forEach(item=>{
-    const pair = document.createElement("div");
-    pair.className = "train-msg-pair";
-
-    const langLabel = document.createElement("div");
-    langLabel.className = "train-lang";
-    langLabel.textContent = `Language: ${item.lang ? item.lang.toUpperCase() : "N/A"}`;
-    pair.appendChild(langLabel);
-
-    const userMsg = document.createElement("div");
-    userMsg.className = "train-user-msg";
-    userMsg.textContent = item.question;
-
-    const botMsg = document.createElement("div");
-    botMsg.className = "train-bot-msg";
-    botMsg.textContent = item.answer;
-
-    pair.appendChild(userMsg);
-    pair.appendChild(botMsg);
-    container.appendChild(pair);
-  });
-}
-
-function filterAndSearch() {
-  let filtered = trainingData;
-  const query = searchInput.value.toLowerCase();
-  const lang = langFilter.value;
-  if(lang) filtered = filtered.filter(item=>item.lang===lang);
-  if(query) filtered = filtered.filter(item=>item.question.toLowerCase().includes(query)||item.answer.toLowerCase().includes(query));
-  displayData(filtered);
-}
-
-function updateStatus() {
-  statusTotal.textContent = trainingData.length;
-  statusRefresh.textContent = new Date().toLocaleTimeString();
-}
-
-searchInput.addEventListener("input", filterAndSearch);
-langFilter.addEventListener("change", filterAndSearch);
-refreshBtn.addEventListener("click", loadTrainingData);
-
-exportBtn.addEventListener("click", ()=>{
-  if(!trainingData.length) return alert("No data to export!");
-  const ws = XLSX.utils.json_to_sheet(trainingData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
-  XLSX.writeFile(wb, "training_data.xlsx");
-});
-
-importBtn.addEventListener("click", ()=> importFile.click());
-importFile.addEventListener("change", async e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = async evt=>{
-    const dataBuf = new Uint8Array(evt.target.result);
-    const workbook = XLSX.read(dataBuf,{type:"array"});
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(sheet);
-    if(!json.length) return alert("No data found in Excel!");
-
-    let added=0, updated=0, skipped=0;
-
-    for(let item of json){
-      if(!item.question||!item.answer) continue;
-      const newQ = item.question.trim().toLowerCase();
-      const newA = item.answer.trim();
-      const existingIndex = trainingData.findIndex(td=>td.question.trim().toLowerCase()===newQ);
-      if(existingIndex>=0){
-        const existing = trainingData[existingIndex];
-        if(existing.answer.trim()===newA && (existing.lang||"en")===(item.lang||"en")){ skipped++; continue; }
-        trainingData[existingIndex].answer=item.answer;
-        trainingData[existingIndex].lang=item.lang||existing.lang||"en";
-        updated++;
-      } else {
-        trainingData.unshift({question:item.question, answer:item.answer, lang:item.lang||"en"});
-        added++;
+    // Load training data
+    async function loadTrainingData() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        trainingData = data.training_data.reverse();
+        displayData(trainingData);
+        updateStatus();
+        // also cache locally
+        localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData));
+      } catch (err) {
+        // fallback to cache
+        const cached = localStorage.getItem('trained_answers_cache');
+        if (cached) {
+          try {
+            trainingData = JSON.parse(cached).reverse();
+            displayData(trainingData);
+            updateStatus();
+          } catch (e) {
+            container.innerHTML = "Error loading data.";
+          }
+        } else {
+          container.innerHTML = "Error loading data.";
+        }
       }
-
-      try{ await fetch(TRAIN_API_URL,{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({question:item.question, answer:item.answer})}); }
-      catch(err){ console.error("Failed to upload:", item, err); }
     }
 
-    displayData(trainingData);
-    updateStatus();
-    statusImport.textContent = `Added: ${added}, Updated: ${updated}, Skipped: ${skipped}`;
-    alert(`✅ Import complete!\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`);
-    localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData.reverse()));
-  };
-  reader.readAsArrayBuffer(file);
-});
+    function displayData(data) {
+      container.innerHTML = "";
+      if (!data.length) {
+        container.innerHTML = "<p>No training data found.</p>";
+        return;
+      }
+      data.forEach(item => {
+        const pair = document.createElement("div");
+        pair.className = "train-msg-pair";
 
-loadTrainingData();
-setInterval(loadTrainingData, 5000);
-</script>
+        const langLabel = document.createElement("div");
+        langLabel.className = "train-lang";
+        langLabel.textContent = `Language: ${item.lang ? item.lang.toUpperCase() : "N/A"}`;
+        pair.appendChild(langLabel);
+
+        const userMsg = document.createElement("div");
+        userMsg.className = "train-user-msg";
+        userMsg.textContent = item.question;
+
+        const botMsg = document.createElement("div");
+        botMsg.className = "train-bot-msg";
+        botMsg.textContent = item.answer;
+
+        pair.appendChild(userMsg);
+        pair.appendChild(botMsg);
+        container.appendChild(pair);
+      });
+    }
+
+    function filterAndSearch() {
+      let filtered = trainingData;
+      const query = searchInput.value.toLowerCase();
+      const lang = langFilter.value;
+      if (lang) filtered = filtered.filter(item => item.lang === lang);
+      if (query) filtered = filtered.filter(item =>
+        item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
+      );
+      displayData(filtered);
+    }
+
+    function updateStatus() {
+      statusTotal.textContent = trainingData.length;
+      statusRefresh.textContent = new Date().toLocaleTimeString();
+    }
+
+    searchInput.addEventListener("input", filterAndSearch);
+    langFilter.addEventListener("change", filterAndSearch);
+    refreshBtn.addEventListener("click", loadTrainingData);
+
+    // Export to Excel
+    exportBtn.addEventListener("click", () => {
+      if (!trainingData.length) return alert("No data to export!");
+      const ws = XLSX.utils.json_to_sheet(trainingData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "TrainingData");
+      XLSX.writeFile(wb, "training_data.xlsx");
+    });
+
+    // Import Excel and merge
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const dataBuf = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(dataBuf, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        if (!json.length) return alert("No data found in Excel!");
+
+        let added = 0, updated = 0, skipped = 0;
+
+        for (let item of json) {
+          if (!item.question || !item.answer) continue;
+
+          const newQ = item.question.trim().toLowerCase();
+          const newA = item.answer.trim();
+
+          const existingIndex = trainingData.findIndex(td => td.question.trim().toLowerCase() === newQ);
+
+          if (existingIndex >= 0) {
+            const existing = trainingData[existingIndex];
+            if (existing.answer.trim() === newA && (existing.lang || "en") === (item.lang || "en")) {
+              skipped++;
+              continue;
+            }
+            trainingData[existingIndex].answer = item.answer;
+            trainingData[existingIndex].lang = item.lang || existing.lang || "en";
+            updated++;
+          } else {
+            trainingData.unshift({ question: item.question, answer: item.answer, lang: item.lang || "en" });
+            added++;
+          }
+
+          try {
+            // only send allowed fields expected by server
+            await fetch(TRAIN_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                question: item.question,
+                answer: item.answer
+              }),
+            });
+          } catch (err) {
+            console.error("Failed to upload:", item, err);
+          }
+        }
+
+        displayData(trainingData);
+        updateStatus();
+        statusImport.textContent = `Added: ${added}, Updated: ${updated}, Skipped: ${skipped}`;
+        alert(`✅ Import complete!\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`);
+        // update local cache
+        localStorage.setItem('trained_answers_cache', JSON.stringify(trainingData.reverse()));
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Auto-refresh every 5 seconds
+    loadTrainingData();
+    setInterval(loadTrainingData, 5000);
+  </script>
 </body>
 </html>
