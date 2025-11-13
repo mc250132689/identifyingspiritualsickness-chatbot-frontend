@@ -80,7 +80,6 @@
   </div>
 
   <script>
-    // Backend API URLs
 const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
 const GUIDANCE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/guidance";
 const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
@@ -89,7 +88,6 @@ const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 
-// --- Utilities ---
 function scrollToBottomSmooth() {
   chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 }
@@ -106,7 +104,6 @@ function normalizeText(s) {
   return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// --- Load trained answers from backend ---
 let trainedAnswers = {};
 async function loadTrainedAnswers() {
   try {
@@ -131,9 +128,8 @@ async function loadTrainedAnswers() {
   }
 }
 loadTrainedAnswers();
-setInterval(loadTrainedAnswers, 5000); // 🔄 Auto-refresh every 5 seconds
+setInterval(loadTrainedAnswers, 5000);
 
-// Append message to chat
 function appendMessage(userText, botText) {
   const container = document.createElement("div");
   container.className = "message-pair";
@@ -162,17 +158,14 @@ function formatBotAnswer(text) {
     .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
 }
 
-// --- MAIN SEND FUNCTION ---
 async function sendMessage() {
   const userText = input.value.trim();
   if (!userText) return;
-
   input.value = "";
   resizeTextarea();
 
   const normalizedUser = normalizeText(userText);
 
-  // 1️⃣ Check trained answers
   let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
   if (!trainedKey) trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).includes(normalizedUser));
   if (trainedKey) {
@@ -180,8 +173,7 @@ async function sendMessage() {
     return;
   }
 
-  // 2️⃣ Symptom-like input detection
-  const symptomKeywords = ["voices","see","hearing","insomnia","nightmares","dizziness","sudden pain","bad luck","family problem","marriage problem","fear"];
+  const symptomKeywords = ["voices","see","hearing","insomnia","nightmares","dizziness","palpitation","itching","sudden pain","fear","not myself","sudden change","bad luck","family problem","marriage problem"];
   const isSymptom = symptomKeywords.some(k => normalizedUser.includes(k));
 
   const botMsgElem = appendMessage(`🧍: ${userText}`, null);
@@ -206,7 +198,6 @@ async function sendMessage() {
     }
   }
 
-  // 3️⃣ General GPT response
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -216,12 +207,13 @@ async function sendMessage() {
     const data = await res.json();
     botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
 
-    // Update local trained cache
     try {
       const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
-      cached.push({ question: userText, answer: data.response, lang: 'en' });
-      localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
-      trainedAnswers[userText.toLowerCase()] = data.response;
+      if (!cached.some(e => normalizeText(e.question) === normalizedUser)) {
+        cached.push({ question: userText, answer: data.response, lang: 'en' });
+        localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
+        trainedAnswers[userText.toLowerCase()] = data.response;
+      }
     } catch (e) { console.warn(e); }
 
     scrollToBottomSmooth();
@@ -232,7 +224,6 @@ async function sendMessage() {
   }
 }
 
-// Event listeners
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -241,13 +232,11 @@ input.addEventListener("keydown", (e) => {
   }
 });
 
-// --- Listen for feedback updates ---
 window.addEventListener("message", (event) => {
   if (event.data.type === "refresh-feedback") {
-    loadTrainedAnswers(); // auto-refresh trained answers if new feedback submitted
+    loadTrainedAnswers();
   }
 });
-
   </script>
 </body>
 </html>
