@@ -70,7 +70,7 @@
             <strong>Would Use Again:</strong> ${fb.q11 || '-'}<br><br>
 
             <strong>Suggestions:</strong><br>${fb.q12 || "-"}<br><br>
-            <strong>Overall Satisfaction:</strong><br>${fb.q13 || '-'}<br><br>
+            <strong>Overall Satisfaction:</strong> ${fb.q13 || '-'}<br><br>
             <strong>Additional Comments:</strong><br>${fb.q14 || "-"}
           </div>
         `;
@@ -83,11 +83,17 @@
   }
 
   refreshBtn.addEventListener("click", loadFeedback);
+
+  // auto-update every 10s
   setInterval(loadFeedback, 10000);
+
+  // update immediately if feedback submitted from another tab
   window.addEventListener("message", (e) => {
     if (e.data?.type === "refresh-feedback") loadFeedback();
   });
+
   loadFeedback();
 </script>
+
 </body>
 </html>
