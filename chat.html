@@ -6,67 +6,248 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
-    .container { max-width:600px; margin:20px auto; background:#fff; border-radius:10px; padding:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    h1 { text-align:center; margin-bottom:15px; color:#1f3d39; }
-    #chatbox { max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:10px; border-radius:10px; background:#fafafa; }
-    .user-msg { background:#d1e7ff; align-self:flex-end; padding:10px 15px; border-radius:20px; margin:5px 0; max-width:80%; }
-    .bot-msg { background:#e2e2e2; align-self:flex-start; padding:10px 15px; border-radius:20px; margin:5px 0; max-width:80%; }
-    #input-area { display:flex; margin-top:10px; gap:8px; flex-wrap:wrap; }
-    #user-input { flex-grow:1; padding:10px; border-radius:20px; border:1px solid #ccc; min-height:40px; resize:none; }
-    #send-btn { padding:10px 18px; border:none; border-radius:20px; background:#1f3d39; color:white; cursor:pointer; }
-    #send-btn:hover { background:#335b53; }
-    @media(max-width:480px){
-      #chatbox { max-height:300px; }
-      #user-input { min-height:35px; }
+    .btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      text-align: center;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .btn:hover { background-color: #3b5e53; }
+    #send-btn { padding: 12px 20px; font-size: 16px; border-radius: 10px; flex-shrink: 0; }
+    .input-container { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .input-container textarea {
+      flex: 1 1 auto;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      resize: none;
+      overflow-y: hidden;
+      min-height: 40px;
+      max-height: 150px;
+    }
+    header > div:last-child { display: flex; gap: 8px; flex-wrap: wrap; }
+    #chat-box {
+      margin-top: 10px;
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: #f9fdfb;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .message { display: inline-block; padding: 10px 14px; margin-bottom: 10px; border-radius: 12px; max-width: 80%; word-wrap: break-word; line-height: 1.4; font-size: 15px; transition: background 0.3s; }
+    .message.user { background-color: #d1e7dd; align-self: flex-end; text-align: right; margin-left: auto; }
+    .message.bot { background-color: #ffffff; border: 1px solid #ccc; align-self: flex-start; text-align: left; margin-right: auto; }
+    .message:last-child { box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    @media (max-width: 600px) {
+      header > div:last-child { flex-direction: column; width: 100%; }
+      .btn { font-size: 16px; padding: 12px 20px; }
+      .input-container textarea { flex: 1 1 100%; }
+      #send-btn { width: 100%; }
+      #chat-box { max-height: 60vh; }
+      .message { font-size: 16px; max-width: 100%; }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <div class="card">
+      <header style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="brand">﷽</div>
+        <div style="flex:1">
+          <h1>Identifying Spiritual Sickness Chatbot</h1>
+          <div style="font-size:13px;color:#4b6960">Answers using Quran, Sahih Hadith & valid ruqyah practices</div>
+        </div>
+        <div>
+          <a class="btn secondary small" href="feedback.html">✍️ Feedback</a>
+          <a class="btn small" href="admin_dashboard.html">🔐 Admin</a>
+        </div>
+      </header>
 
-<div class="container">
-  <h1>🕋 Identifying Spiritual Sickness Chatbot</h1>
-  <div id="chatbox" style="display:flex; flex-direction:column;"></div>
-  <div id="input-area">
-    <textarea id="user-input" placeholder="Type your question..."></textarea>
-    <button id="send-btn">Send</button>
+      <div id="chat-box"></div>
+
+      <div class="input-container">
+        <textarea id="user-input" placeholder="Type your message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
   </div>
-</div>
 
-<script>
-const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com";
+  <script>
+    // Backend API URLs
+const API_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/chat";
+const GUIDANCE_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/guidance";
+const TRAIN_DATA_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-training-data";
 
-const chatbox = document.getElementById("chatbox");
+const chatBox = document.getElementById("chat-box");
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 
-async function sendMessage() {
-  const msg = input.value.trim();
-  if(!msg) return;
-  addMessage(msg, "user");
-  input.value = "";
+// --- Utilities ---
+function scrollToBottomSmooth() {
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+}
+
+function resizeTextarea() {
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+  scrollToBottomSmooth();
+}
+input.addEventListener('input', resizeTextarea);
+
+function normalizeText(s) {
+  if (!s) return "";
+  return s.toString().toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// --- Load trained answers from backend ---
+let trainedAnswers = {};
+async function loadTrainedAnswers() {
   try {
-    const res = await fetch(`${API_URL}/chat`, {
+    const res = await fetch(TRAIN_DATA_URL);
+    const data = await res.json();
+    if (data.training_data && Array.isArray(data.training_data)) {
+      trainedAnswers = {};
+      data.training_data.forEach(item => {
+        trainedAnswers[item.question.toLowerCase()] = item.answer;
+      });
+      localStorage.setItem('trained_answers_cache', JSON.stringify(data.training_data));
+    }
+  } catch (err) {
+    const cached = localStorage.getItem('trained_answers_cache');
+    if (cached) {
+      try {
+        const arr = JSON.parse(cached);
+        trainedAnswers = {};
+        arr.forEach(item => trainedAnswers[item.question.toLowerCase()] = item.answer);
+      } catch (e) { console.error(e); }
+    }
+  }
+}
+loadTrainedAnswers();
+setInterval(loadTrainedAnswers, 5000); // 🔄 Auto-refresh every 5 seconds
+
+// Append message to chat
+function appendMessage(userText, botText) {
+  const container = document.createElement("div");
+  container.className = "message-pair";
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "message user";
+  userMsg.innerHTML = userText;
+  container.appendChild(userMsg);
+
+  const botMsg = document.createElement("div");
+  botMsg.className = "message bot";
+  botMsg.innerHTML = botText || "🤲 Generating response...";
+  container.appendChild(botMsg);
+
+  chatBox.appendChild(container);
+  scrollToBottomSmooth();
+  return botMsg;
+}
+
+function formatBotAnswer(text) {
+  if (!text) return "";
+  return text
+    .replace(/\r\n|\r|\n/g, "<br>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\#\#\s(.*?)(<br>|$)/g, "<h3>$1</h3>");
+}
+
+// --- MAIN SEND FUNCTION ---
+async function sendMessage() {
+  const userText = input.value.trim();
+  if (!userText) return;
+
+  input.value = "";
+  resizeTextarea();
+
+  const normalizedUser = normalizeText(userText);
+
+  // 1️⃣ Check trained answers
+  let trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k) === normalizedUser);
+  if (!trainedKey) trainedKey = Object.keys(trainedAnswers).find(k => normalizeText(k).includes(normalizedUser));
+  if (trainedKey) {
+    appendMessage(`🧍: ${userText}`, `🤖: ${formatBotAnswer(trainedAnswers[trainedKey])}`);
+    return;
+  }
+
+  // 2️⃣ Symptom-like input detection
+  const symptomKeywords = ["voices","see","hearing","insomnia","nightmares","dizziness","sudden pain","bad luck","family problem","marriage problem","fear"];
+  const isSymptom = symptomKeywords.some(k => normalizedUser.includes(k));
+
+  const botMsgElem = appendMessage(`🧍: ${userText}`, null);
+
+  if (isSymptom) {
+    try {
+      const res = await fetch(GUIDANCE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptoms: userText })
+      });
+      const data = await res.json();
+      let suggestionsHtml = data.suggestions?.map(s => `• ${s}`).join("<br>") || "";
+      let stepsHtml = data.recommended_steps?.length ? "<br><strong>Recommended Steps:</strong><br>" + data.recommended_steps.join("<br>") : "";
+      botMsgElem.innerHTML = `🤖: <strong>Severity:</strong> ${data.severity}<br>${suggestionsHtml}${stepsHtml}`;
+      scrollToBottomSmooth();
+      return;
+    } catch (err) {
+      botMsgElem.innerHTML = "🤖: Error connecting to backend for guidance.";
+      console.error(err);
+      return;
+    }
+  }
+
+  // 3️⃣ General GPT response
+  try {
+    const res = await fetch(API_URL, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({message: msg})
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userText })
     });
     const data = await res.json();
-    addMessage(data.response || "No response.", "bot");
-  } catch(e) { addMessage("Failed to get response.", "bot"); }
+    botMsgElem.innerHTML = `🤖: ${formatBotAnswer(data.response)}`;
+
+    // Update local trained cache
+    try {
+      const cached = JSON.parse(localStorage.getItem('trained_answers_cache') || '[]');
+      cached.push({ question: userText, answer: data.response, lang: 'en' });
+      localStorage.setItem('trained_answers_cache', JSON.stringify(cached));
+      trainedAnswers[userText.toLowerCase()] = data.response;
+    } catch (e) { console.warn(e); }
+
+    scrollToBottomSmooth();
+  } catch (err) {
+    botMsgElem.innerHTML = "🤖: Error connecting to backend.";
+    console.error(err);
+    scrollToBottomSmooth();
+  }
 }
 
-function addMessage(msg, sender){
-  const div = document.createElement("div");
-  div.className = sender==="user"?"user-msg":"bot-msg";
-  div.textContent = msg;
-  chatbox.appendChild(div);
-  chatbox.scrollTop = chatbox.scrollHeight;
-}
+// Event listeners
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keypress", e=>{ if(e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-</script>
+// --- Listen for feedback updates ---
+window.addEventListener("message", (event) => {
+  if (event.data.type === "refresh-feedback") {
+    loadTrainedAnswers(); // auto-refresh trained answers if new feedback submitted
+  }
+});
 
+  </script>
 </body>
 </html>
