@@ -14,7 +14,9 @@
       padding: 14px;
       margin-bottom: 12px;
       border-left: 4px solid #3b5e53;
+      transition: transform 0.1s;
     }
+    .feedback-card:hover { transform: translateY(-2px); }
     .meta { font-size: 13px; color:#58736d; margin-bottom:6px; }
   </style>
 </head>
@@ -34,66 +36,66 @@
   </div>
 
 <script>
-  const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/export-feedback?key=mc250132689";
-  const list = document.getElementById("feedback-list");
-  const refreshBtn = document.getElementById("refresh");
+const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
+const list = document.getElementById("feedback-list");
+const refreshBtn = document.getElementById("refresh");
 
-  async function loadFeedback() {
-    list.textContent = "Loading...";
-    try {
-      const res = await fetch(FEEDBACK_API);
-      const dataRaw = await res.json();
-      const data = Array.isArray(dataRaw) ? dataRaw : dataRaw.feedback;
+// fetch and display feedback
+async function loadFeedback() {
+  list.textContent = "Loading...";
+  try {
+    const res = await fetch(FEEDBACK_API);
+    const data = await res.json();
 
-      if (!data || !data.length) {
-        list.innerHTML = "<p>No feedback submitted yet.</p>";
-        return;
-      }
-
-      list.innerHTML = "";
-      data.slice().reverse().forEach(fb => {
-        const card = document.createElement("div");
-        card.className = "feedback-card";
-        card.innerHTML = `
-          <div class="meta">
-            <strong>${fb.name || "Anonymous"}</strong> 
-            ${fb.student_id ? `• ${fb.student_id}` : ""}
-            ${fb.program ? `• ${fb.program}` : ""}
-          </div>
-          <div style="margin-top:6px;">
-            <strong>Chatbot Usability:</strong> ${fb.q4 || '-'}<br>
-            <strong>Clarity of Instructions:</strong> ${fb.q5 || '-'}<br>
-            <strong>Difficulty:</strong> ${fb.q6 || '-'}<br>
-            <strong>Relevance:</strong> ${fb.q7 || '-'}<br>
-            <strong>Accuracy:</strong> ${fb.q8 || '-'}<br>
-            <strong>Misleading Responses:</strong> ${fb.q9 || '-'}<br>
-            <strong>Helpfulness:</strong> ${fb.q10 || '-'}<br>
-            <strong>Would Use Again:</strong> ${fb.q11 || '-'}<br><br>
-
-            <strong>Suggestions:</strong><br>${fb.q12 || "-"}<br><br>
-            <strong>Overall Satisfaction:</strong> ${fb.q13 || '-'}<br><br>
-            <strong>Additional Comments:</strong><br>${fb.q14 || "-"}
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    } catch (err) {
-      console.error(err);
-      list.textContent = "Failed to load feedback.";
+    if (!data || !data.length) {
+      list.innerHTML = "<p>No feedback submitted yet.</p>";
+      return;
     }
+
+    list.innerHTML = "";
+    data.slice().reverse().forEach(fb => {
+      const card = document.createElement("div");
+      card.className = "feedback-card";
+      card.innerHTML = `
+        <div class="meta">
+          <strong>${fb.name || "Anonymous"}</strong> 
+          ${fb.student_id ? `• ${fb.student_id}` : ""}
+          ${fb.program ? `• ${fb.program}` : ""}
+        </div>
+        <div style="margin-top:6px;">
+          <strong>Chatbot Usability:</strong> ${fb.q4 || '-'}<br>
+          <strong>Clarity of Instructions:</strong> ${fb.q5 || '-'}<br>
+          <strong>Difficulty:</strong> ${fb.q6 || '-'}<br>
+          <strong>Relevance:</strong> ${fb.q7 || '-'}<br>
+          <strong>Accuracy:</strong> ${fb.q8 || '-'}<br>
+          <strong>Misleading Responses:</strong> ${fb.q9 || '-'}<br>
+          <strong>Helpfulness:</strong> ${fb.q10 || '-'}<br>
+          <strong>Would Use Again:</strong> ${fb.q11 || '-'}<br><br>
+
+          <strong>Suggestions:</strong><br>${fb.q12 || "-"}<br><br>
+          <strong>Overall Satisfaction:</strong> ${fb.q13 || '-'}<br><br>
+          <strong>Additional Comments:</strong><br>${fb.q14 || "-"}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    list.textContent = "Failed to load feedback.";
   }
+}
 
-  refreshBtn.addEventListener("click", loadFeedback);
+refreshBtn.addEventListener("click", loadFeedback);
 
-  // auto-update every 10s
-  setInterval(loadFeedback, 10000);
+// auto-update every 10 seconds
+setInterval(loadFeedback, 10000);
 
-  // update immediately if feedback submitted from another tab
-  window.addEventListener("message", (e) => {
-    if (e.data?.type === "refresh-feedback") loadFeedback();
-  });
+// update immediately if feedback submitted from another tab
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "refresh-feedback") loadFeedback();
+});
 
-  loadFeedback();
+loadFeedback();
 </script>
 </body>
 </html>
