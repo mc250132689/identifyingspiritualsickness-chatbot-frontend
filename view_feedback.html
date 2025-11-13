@@ -6,7 +6,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
-    .btn { padding: 8px 14px; border-radius: 8px; background:#1f3d39; color:white; text-decoration:none; }
+    .btn { 
+      padding: 8px 14px; 
+      border-radius: 8px; 
+      background: #1f3d39; 
+      color: white; 
+      text-decoration: none; 
+      cursor: pointer;
+    }
     .btn:hover { background:#335b53; }
     .feedback-card {
       background: #fff;
@@ -14,6 +21,7 @@
       padding: 14px;
       margin-bottom: 12px;
       border-left: 4px solid #3b5e53;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .meta { font-size: 13px; color:#58736d; margin-bottom:6px; }
   </style>
@@ -34,6 +42,7 @@
   </div>
 
 <script>
+  // Endpoint remains the same; app.py /get-feedback now returns SQLite data
   const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
   const list = document.getElementById("feedback-list");
   const refreshBtn = document.getElementById("refresh");
@@ -42,6 +51,7 @@
     list.textContent = "Loading...";
     try {
       const res = await fetch(FEEDBACK_API);
+      if (!res.ok) throw new Error("Network response not ok");
       const data = await res.json();
 
       if (!data || !data.length) {
@@ -50,16 +60,17 @@
       }
 
       list.innerHTML = "";
+      // reverse chronological display
       data.slice().reverse().forEach(fb => {
         const card = document.createElement("div");
         card.className = "feedback-card";
         card.innerHTML = `
           <div class="meta">
-            <strong>${fb.name || "Anonymous"}</strong> 
+            <strong>${fb.name || "Anonymous"}</strong>
             ${fb.student_id ? `• ${fb.student_id}` : ""}
             ${fb.program ? `• ${fb.program}` : ""}
           </div>
-          <div style="margin-top:6px;">
+          <div style="margin-top:6px; font-size:14px; line-height:1.4;">
             <strong>Chatbot Usability:</strong> ${fb.q4 || '-'}<br>
             <strong>Clarity of Instructions:</strong> ${fb.q5 || '-'}<br>
             <strong>Difficulty:</strong> ${fb.q6 || '-'}<br>
@@ -78,20 +89,21 @@
       });
     } catch (err) {
       console.error(err);
-      list.textContent = "Failed to load feedback.";
+      list.textContent = "Failed to load feedback. Please try again later.";
     }
   }
 
   refreshBtn.addEventListener("click", loadFeedback);
 
-  // auto-update every 10s
+  // Auto-refresh every 10 seconds
   setInterval(loadFeedback, 10000);
 
-  // update immediately if feedback submitted from another tab
+  // Listen for cross-tab refresh events
   window.addEventListener("message", (e) => {
     if (e.data?.type === "refresh-feedback") loadFeedback();
   });
 
+  // Initial load
   loadFeedback();
 </script>
 
