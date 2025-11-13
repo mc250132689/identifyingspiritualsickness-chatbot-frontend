@@ -45,7 +45,7 @@
   <table id="feedback-table">
     <thead>
       <tr>
-        <th>#</th><th>Name</th><th>Student ID</th><th>Program</th><th>Responses (Q4-Q13)</th><th>Suggestions / Comments</th><th>Sentiment</th>
+        <th>#</th><th>Name</th><th>Student ID</th><th>Program</th><th>Q4-Q14 Responses</th><th>Comments</th><th>Sentiment</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -54,107 +54,117 @@
 
 <script>
 const FEEDBACK_URL = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
+const HF_API_KEY = "YOUR_HF_API_KEY_HERE";
+const MODEL_URL = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest";
 
-// Utility to calculate word frequency
-function getWordFrequency(feedbackArr){
-  const words = feedbackArr.map(f=>f.q14 || "").join(" ").toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/);
-  const freq = {};
-  words.forEach(w=>{ if(w) freq[w] = (freq[w]||0)+1; });
-  return freq;
-}
-
-// Export CSV
-function exportCSV(){
-  fetch(FEEDBACK_URL).then(r=>r.json()).then(data=>{
-    if(!data.length) return alert("No data to export!");
-    const csvRows = [];
-    const headers = ["Name","Student ID","Program","Q4","Q5","Q6","Q7","Q8","Q9","Q10","Q11","Q12","Q13","Q14"];
-    csvRows.push(headers.join(","));
-    data.forEach(f=>{
-      const row = [f.name,f.student_id,f.program,f.q4,f.q5,f.q6,f.q7,f.q8,f.q9,f.q10,f.q11,f.q12,f.q13,f.q14];
-      csvRows.push(row.map(v=>`"${v||''}"`).join(","));
+async function getSentimentAI(text){
+  try{
+    const res = await fetch(MODEL_URL,{
+      method:"POST",
+      headers:{
+        "Authorization": `Bearer ${HF_API_KEY}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({inputs:text})
     });
-    const blob = new Blob([csvRows.join("\n")],{type:"text/csv"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download="feedback.csv"; a.click();
-    URL.revokeObjectURL(url);
-  });
+    const result = await res.json();
+    if(!Array.isArray(result) || !result[0]) return {label:"Neutral", class:"sentiment-neutral"};
+    const sorted = result[0].sort((a,b)=>b.score-a.score)[0];
+    if(sorted.label.toLowerCase().includes("positive")) return {label:"Positive", class:"sentiment-positive"};
+    if(sorted.label.toLowerCase().includes("negative")) return {label:"Negative", class:"sentiment-negative"};
+    return {label:"Neutral", class:"sentiment-neutral"};
+  } catch { return {label:"Neutral", class:"sentiment-neutral"}; }
 }
 
 async function loadFeedback(){
-  const res = await fetch(FEEDBACK_URL);
-  const feedback = await res.json();
-  document.getElementById("total-feedback").textContent = feedback.length;
+  try{
+    const res = await fetch(FEEDBACK_URL);
+    const feedback = await res.json();
+    document.getElementById("total-feedback").textContent = feedback.length;
 
-  const ratingLabels = ["Very easy","Easy","Neutral","Difficult","Very difficult"];
-  const ratingCount = ratingLabels.reduce((acc,label)=>({...acc,[label]:0}),{});
-  let ratingSum = 0;
+    let sentimentCount = {Positive:0, Negative:0, Neutral:0};
+    let ratingCount = {"Very easy":0,"Easy":0,"Neutral":0,"Difficult":0,"Very difficult":0};
+    let ratingSum = 0;
+    const tbody = document.querySelector("#feedback-table tbody");
+    tbody.innerHTML = "";
 
-  const sentimentCount = {Positive:0,Negative:0,Neutral:0};
-  const tbody = document.querySelector("#feedback-table tbody");
-  tbody.innerHTML = "";
+    for(let i=0;i<feedback.length;i++){
+      const f = feedback[i];
+      const sentiment = await getSentimentAI(f.q14 || "");
+      sentimentCount[sentiment.label]++;
+      ratingCount[f.q4] = (ratingCount[f.q4]||0)+1;
+      if(["Very easy","Easy","Neutral","Difficult","Very difficult"].includes(f.q4)) ratingSum += ["Very easy","Easy","Neutral","Difficult","Very difficult"].indexOf(f.q4)+1;
 
-  feedback.forEach((f,i)=>{
-    const ratingIndex = ratingLabels.indexOf(f.q4);
-    if(ratingIndex>=0) ratingSum += ratingIndex+1;
-    ratingCount[f.q4] = (ratingCount[f.q4]||0)+1;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${f.name||"-"}</td>
+        <td>${f.student_id||"-"}</td>
+        <td>${f.program||"-"}</td>
+        <td>
+          Q4:${f.q4||"-"} | Q5:${f.q5||"-"} | Q6:${f.q6||"-"}<br>
+          Q7:${f.q7||"-"} | Q8:${f.q8||"-"} | Q9:${f.q9||"-"}<br>
+          Q10:${f.q10||"-"} | Q11:${f.q11||"-"} | Q12:${f.q12||"-"}<br>
+          Q13:${f.q13||"-"}
+        </td>
+        <td>${f.q14||"-"}</td>
+        <td class="${sentiment.class}">${sentiment.label}</td>
+      `;
+      tbody.appendChild(tr);
+    }
 
-    const sentiment = "Neutral";
-    sentimentCount[sentiment]++;
+    document.getElementById("average-rating").textContent = feedback.length? (ratingSum/feedback.length).toFixed(2):0;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i+1}</td>
-      <td>${f.name||"-"}</td>
-      <td>${f.student_id||"-"}</td>
-      <td>${f.program||"-"}</td>
-      <td>
-        Q4:${f.q4||"-"} | Q5:${f.q5||"-"} | Q6:${f.q6||"-"}<br>
-        Q7:${f.q7||"-"} | Q8:${f.q8||"-"} | Q9:${f.q9||"-"}<br>
-        Q10:${f.q10||"-"} | Q11:${f.q11||"-"} | Q12:${f.q12||"-"}<br>
-        Q13:${f.q13||"-"}
-      </td>
-      <td>${f.q14||"-"}</td>
-      <td class="sentiment-neutral">${sentiment}</td>
+    document.getElementById("sentiment-table").innerHTML = `
+      <tr><td>Positive</td><td>${sentimentCount.Positive}</td></tr>
+      <tr><td>Negative</td><td>${sentimentCount.Negative}</td></tr>
+      <tr><td>Neutral</td><td>${sentimentCount.Neutral}</td></tr>
     `;
-    tbody.appendChild(tr);
+
+    // Ratings chart
+    new Chart(document.getElementById("ratingChart"),{
+      type:"bar",
+      data:{
+        labels:Object.keys(ratingCount),
+        datasets:[{label:"Rating Count", data:Object.values(ratingCount), backgroundColor:"#16a34a"}]
+      }
+    });
+
+    // Sentiment chart
+    new Chart(document.getElementById("sentimentChart"),{
+      type:"pie",
+      data:{
+        labels:["Positive","Neutral","Negative"],
+        datasets:[{data:[sentimentCount.Positive,sentimentCount.Neutral,sentimentCount.Negative], backgroundColor:["#16a34a","#444","#dc2626"]}]
+      }
+    });
+
+    // Word frequency
+    const text = feedback.map(f=>f.q14||"").join(" ").toLowerCase();
+    const words = text.replace(/[^a-zA-Z0-9\s]/g,"").split(/\s+/);
+    const stopWords = ["the","is","and","to","of","a","in","for","that","with","this","it","on","was","are","but","not","you"];
+    const counts = {};
+    words.forEach(w=>{ if(!stopWords.includes(w)&&w.length>3) counts[w]=(counts[w]||0)+1; });
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    document.getElementById("word-frequency").innerHTML = sorted.map(w=>`<span>${w[0]} (${w[1]})</span>`).join(" ");
+
+    window.feedbackData = feedback; // for CSV export
+
+  } catch(err){ console.error("Failed to load feedback",err);}
+}
+
+function exportCSV(){
+  if(!window.feedbackData || !window.feedbackData.length) return alert("No feedback to export.");
+  const rows = [["Name","Student ID","Program","Q4","Q5","Q6","Q7","Q8","Q9","Q10","Q11","Q12","Q13","Comments"]];
+  window.feedbackData.forEach(f=>{
+    rows.push([f.name,f.student_id,f.program,f.q4,f.q5,f.q6,f.q7,f.q8,f.q9,f.q10,f.q11,f.q12,f.q13,f.q14]);
   });
-
-  document.getElementById("average-rating").textContent = feedback.length? (ratingSum/feedback.length).toFixed(2) : 0;
-
-  // Ratings chart
-  const ctx1 = document.getElementById("ratingChart").getContext("2d");
-  new Chart(ctx1, {type:"bar", data:{
-    labels:Object.keys(ratingCount),
-    datasets:[{label:"Rating Count", data:Object.values(ratingCount), backgroundColor:"#3b82f6"}]
-  }, options:{responsive:true, plugins:{legend:{display:false}}}});
-
-  // Sentiment chart
-  const ctx2 = document.getElementById("sentimentChart").getContext("2d");
-  new Chart(ctx2, {type:"pie", data:{
-    labels:Object.keys(sentimentCount),
-    datasets:[{data:Object.values(sentimentCount), backgroundColor:["#16a34a","#ef4444","#fbbf24"]}]
-  }, options:{responsive:true}});
-
-  // Word frequency
-  const wordFreq = getWordFrequency(feedback);
-  const wordDiv = document.getElementById("word-frequency");
-  wordDiv.innerHTML = "";
-  Object.entries(wordFreq).sort((a,b)=>b[1]-a[1]).slice(0,30).forEach(([w,c])=>{
-    const span = document.createElement("span");
-    span.textContent=`${w} (${c})`;
-    wordDiv.appendChild(span);
-  });
-
-  // Sentiment table
-  const sentimentTable = document.getElementById("sentiment-table");
-  sentimentTable.innerHTML="";
-  Object.entries(sentimentCount).forEach(([k,v])=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML=`<td>${k}</td><td>${v}</td>`;
-    sentimentTable.appendChild(tr);
-  });
+  const csv = rows.map(r=>r.map(v=>`"${(v||"").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv],{type:"text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "feedback_report.csv";
+  link.click();
 }
 
 loadFeedback();
