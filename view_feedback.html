@@ -36,24 +36,24 @@
   </div>
 
 <script>
-const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/get-feedback";
+const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/export-feedback?key=mc250132689";
 const list = document.getElementById("feedback-list");
 const refreshBtn = document.getElementById("refresh");
 
-// fetch and display feedback
 async function loadFeedback() {
   list.textContent = "Loading...";
   try {
     const res = await fetch(FEEDBACK_API);
     const data = await res.json();
+    const feedback = data.feedback || [];
 
-    if (!data || !data.length) {
+    if (!feedback.length) {
       list.innerHTML = "<p>No feedback submitted yet.</p>";
       return;
     }
 
     list.innerHTML = "";
-    data.slice().reverse().forEach(fb => {
+    feedback.slice().reverse().forEach(fb => {
       const card = document.createElement("div");
       card.className = "feedback-card";
       card.innerHTML = `
@@ -71,7 +71,6 @@ async function loadFeedback() {
           <strong>Misleading Responses:</strong> ${fb.q9 || '-'}<br>
           <strong>Helpfulness:</strong> ${fb.q10 || '-'}<br>
           <strong>Would Use Again:</strong> ${fb.q11 || '-'}<br><br>
-
           <strong>Suggestions:</strong><br>${fb.q12 || "-"}<br><br>
           <strong>Overall Satisfaction:</strong> ${fb.q13 || '-'}<br><br>
           <strong>Additional Comments:</strong><br>${fb.q14 || "-"}
@@ -86,11 +85,8 @@ async function loadFeedback() {
 }
 
 refreshBtn.addEventListener("click", loadFeedback);
-
-// auto-update every 10 seconds
 setInterval(loadFeedback, 10000);
 
-// update immediately if feedback submitted from another tab
 window.addEventListener("message", (e) => {
   if (e.data?.type === "refresh-feedback") loadFeedback();
 });
