@@ -12,176 +12,107 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <header style="align-items:flex-start; display:flex; gap:10px;">
-        <div class="brand">✍️</div>
-        <div>
-          <h1>Feedback Form</h1>
-          <div style="font-size:13px;color:#4b6960">Please fill this short feedback to help improve the chatbot.</div>
-        </div>
-        <div style="margin-left:auto">
-          <a href="chat.html" class="btn small">← Back to Chat</a>
-        </div>
-      </header>
+<div class="container">
+  <div class="card">
+    <header style="align-items:flex-start; display:flex; gap:10px;">
+      <div class="brand">✍️</div>
+      <div>
+        <h1>Feedback Form</h1>
+        <div style="font-size:13px;color:#4b6960">Please fill this short feedback to help improve the chatbot.</div>
+      </div>
+      <div style="margin-left:auto">
+        <a href="chat.html" class="btn small">← Back to Chat</a>
+      </div>
+    </header>
 
-      <form id="feedback-form">
-        <!-- Participant Info -->
-        <h3>Section 1: Participant Information</h3>
-        <input id="name" placeholder="Name" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-        <input id="student_id" placeholder="Student ID" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-        <input id="program" placeholder="Program/Faculty" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
+    <form id="feedback-form">
+      <!-- Sections omitted for brevity; keep your current inputs/selects/textareas for Q1-Q14 -->
 
-        <!-- Chatbot Usability -->
-        <h3>Section 2: Chatbot usability</h3>
-        <label>4. How easy was it to interact with the chatbot?</label>
-        <select id="q4" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very easy">Very easy</option>
-          <option value="Easy">Easy</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Difficult">Difficult</option>
-          <option value="Very difficult">Very difficult</option>
-        </select>
-
-        <label>5. Were the chatbot's instructions clear?</label>
-        <select id="q5" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very clear">Very clear</option>
-          <option value="Clear">Clear</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Unclear">Unclear</option>
-          <option value="Very unclear">Very unclear</option>
-        </select>
-
-        <label>6. Any difficulties or issues encountered while using the chatbot?</label>
-        <select id="q6" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="No difficulties">No difficulties</option>
-          <option value="Minor difficulties">Minor difficulties</option>
-          <option value="Major difficulties">Major difficulties</option>
-        </select>
-
-        <!-- Relevance & Accuracy -->
-        <h3>Section 3: Relevance and accuracy</h3>
-        <label>7. How relevant were responses?</label>
-        <select id="q7" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very relevant">Very relevant</option>
-          <option value="Relevant">Relevant</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Irrelevant">Irrelevant</option>
-          <option value="Very irrelevant">Very irrelevant</option>
-        </select>
-
-        <label>8. How accurate do you feel the chatbot's guidance was?</label>
-        <select id="q8" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very accurate">Very accurate</option>
-          <option value="Accurate">Accurate</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Inaccurate">Inaccurate</option>
-          <option value="Very inaccurate">Very inaccurate</option>
-        </select>
-
-        <label>9. Any incorrect or misleading responses noticed?</label>
-        <select id="q9" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-
-        <!-- Helpfulness -->
-        <h3>Section 4: Helpfulness</h3>
-        <label>10. How helpful was the chatbot in providing answers based on Islamic practices?</label>
-        <select id="q10" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very helpful">Very helpful</option>
-          <option value="Helpful">Helpful</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Not helpful">Not helpful</option>
-          <option value="Very unhelpful">Very unhelpful</option>
-        </select>
-
-        <label>11. Would you consider using this chatbot regularly for spiritual guidance answers?</label>
-        <select id="q11" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-
-        <label>12. Suggestions to improve the chatbot?</label>
-        <textarea id="q12" placeholder="Suggestions..." style="width:100%;min-height:80px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
-
-        <!-- Overall Experience -->
-        <h3>Section 5: Overall experience</h3>
-        <label>13. Overall, how satisfied are you with the chatbot?</label>
-        <select id="q13" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-          <option value="">Select</option>
-          <option value="Very satisfied">Very satisfied</option>
-          <option value="Satisfied">Satisfied</option>
-          <option value="Neutral">Neutral</option>
-          <option value="Dissatisfied">Dissatisfied</option>
-          <option value="Very dissatisfied">Very dissatisfied</option>
-        </select>
-
-        <label>14. Any additional comments or feedback?</label>
-        <textarea id="q14" placeholder="Any additional comments..." style="width:100%;min-height:100px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
-
-        <div style="margin-top:12px;text-align:right">
-          <button type="submit" class="btn">Submit Feedback</button>
-        </div>
-        <p id="feedback-status" class="small"></p>
-      </form>
-    </div>
+      <div style="margin-top:12px;text-align:right">
+        <button type="submit" class="btn">Submit Feedback</button>
+      </div>
+      <p id="feedback-status" class="small"></p>
+    </form>
   </div>
+</div>
 
 <script>
-  const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/submit-feedback";
-  const form = document.getElementById("feedback-form");
-  const status = document.getElementById("feedback-status");
+const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/submit-feedback";
+const SENTIMENT_API = "https://identifyingspiritualsickness-chatbot.onrender.com/sentiment";
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    status.textContent = "Submitting...";
+const form = document.getElementById("feedback-form");
+const status = document.getElementById("feedback-status");
 
-    const payload = {
-      name: document.getElementById("name").value.trim(),
-      student_id: document.getElementById("student_id").value.trim(),
-      program: document.getElementById("program").value.trim(),
-      q4: document.getElementById("q4").value.trim(),
-      q5: document.getElementById("q5").value.trim(),
-      q6: document.getElementById("q6").value.trim(),
-      q7: document.getElementById("q7").value.trim(),
-      q8: document.getElementById("q8").value.trim(),
-      q9: document.getElementById("q9").value.trim(),
-      q10: document.getElementById("q10").value.trim(),
-      q11: document.getElementById("q11").value.trim(),
-      q12: document.getElementById("q12").value.trim(),
-      q13: document.getElementById("q13").value.trim(),
-      q14: document.getElementById("q14").value.trim()
-    };
+async function getSentiment(text) {
+  try {
+    const res = await fetch(SENTIMENT_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const result = await res.json();
+    if (!Array.isArray(result) || !result[0]) return { label: "Neutral", class: "sentiment-neutral" };
+    const sorted = result[0].sort((a,b)=>b.score-a.score)[0];
+    const label = sorted.label.toLowerCase();
+    if(label.includes("positive")) return { label: "Positive", class: "sentiment-positive" };
+    if(label.includes("negative")) return { label: "Negative", class: "sentiment-negative" };
+    return { label: "Neutral", class: "sentiment-neutral" };
+  } catch {
+    return { label: "Neutral", class: "sentiment-neutral" };
+  }
+}
 
-    try {
-      const res = await fetch(FEEDBACK_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  status.textContent = "Submitting...";
 
-      status.textContent = data.message || "✅ Submitted. Thank you!";
-      form.reset();
+  const payload = {
+    name: document.getElementById("name").value.trim(),
+    student_id: document.getElementById("student_id").value.trim(),
+    program: document.getElementById("program").value.trim(),
+    q4: document.getElementById("q4").value.trim(),
+    q5: document.getElementById("q5").value.trim(),
+    q6: document.getElementById("q6").value.trim(),
+    q7: document.getElementById("q7").value.trim(),
+    q8: document.getElementById("q8").value.trim(),
+    q9: document.getElementById("q9").value.trim(),
+    q10: document.getElementById("q10").value.trim(),
+    q11: document.getElementById("q11").value.trim(),
+    q12: document.getElementById("q12").value.trim(),
+    q13: document.getElementById("q13").value.trim(),
+    q14: document.getElementById("q14").value.trim(),
+    comments: document.getElementById("q14").value.trim()
+  };
 
-      // --- Notify all open tabs (chat, view_feedback, admin) ---
-      window.dispatchEvent(new CustomEvent("feedback-submitted", { detail: payload }));
-      window.postMessage({ type: "refresh-feedback" }, "*");
+  try {
+    // Submit feedback
+    const res = await fetch(FEEDBACK_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    status.textContent = data.message || "✅ Submitted. Thank you!";
+    form.reset();
 
-    } catch (err) {
-      console.error(err);
-      status.textContent = "⚠️ Error submitting feedback. Please try again later.";
+    // Run sentiment analysis via backend proxy
+    const sentiment = await getSentiment(payload.q14);
+    payload.sentiment = sentiment.label;
+    payload.sentimentClass = sentiment.class;
+
+    // Notify admin dashboard or any open tabs
+    if(window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type:"refresh-feedback", newFeedback: payload }, "*");
     }
-  });
+
+    // Notify local listeners (chat page, view_feedback, etc.)
+    window.dispatchEvent(new CustomEvent("feedback-submitted", { detail: payload }));
+
+  } catch(err) {
+    console.error(err);
+    status.textContent = "⚠️ Error submitting feedback. Please try again later.";
+  }
+});
 </script>
 </body>
 </html>
