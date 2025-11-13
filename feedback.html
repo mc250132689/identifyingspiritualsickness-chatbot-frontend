@@ -26,8 +26,7 @@
     </header>
 
     <form id="feedback-form">
-      <!-- Sections omitted for brevity; keep your current inputs/selects/textareas for Q1-Q14 -->
-
+      <!-- keep your current inputs/selects/textareas for Q1-Q14 -->
       <div style="margin-top:12px;text-align:right">
         <button type="submit" class="btn">Submit Feedback</button>
       </div>
@@ -38,54 +37,33 @@
 
 <script>
 const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/submit-feedback";
-const SENTIMENT_API = "https://identifyingspiritualsickness-chatbot.onrender.com/sentiment";
 
 const form = document.getElementById("feedback-form");
 const status = document.getElementById("feedback-status");
-
-async function getSentiment(text) {
-  try {
-    const res = await fetch(SENTIMENT_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-    const result = await res.json();
-    if (!Array.isArray(result) || !result[0]) return { label: "Neutral", class: "sentiment-neutral" };
-    const sorted = result[0].sort((a,b)=>b.score-a.score)[0];
-    const label = sorted.label.toLowerCase();
-    if(label.includes("positive")) return { label: "Positive", class: "sentiment-positive" };
-    if(label.includes("negative")) return { label: "Negative", class: "sentiment-negative" };
-    return { label: "Neutral", class: "sentiment-neutral" };
-  } catch {
-    return { label: "Neutral", class: "sentiment-neutral" };
-  }
-}
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   status.textContent = "Submitting...";
 
   const payload = {
-    name: document.getElementById("name").value.trim(),
-    student_id: document.getElementById("student_id").value.trim(),
-    program: document.getElementById("program").value.trim(),
-    q4: document.getElementById("q4").value.trim(),
-    q5: document.getElementById("q5").value.trim(),
-    q6: document.getElementById("q6").value.trim(),
-    q7: document.getElementById("q7").value.trim(),
-    q8: document.getElementById("q8").value.trim(),
-    q9: document.getElementById("q9").value.trim(),
-    q10: document.getElementById("q10").value.trim(),
-    q11: document.getElementById("q11").value.trim(),
-    q12: document.getElementById("q12").value.trim(),
-    q13: document.getElementById("q13").value.trim(),
-    q14: document.getElementById("q14").value.trim(),
-    comments: document.getElementById("q14").value.trim()
+    name: document.getElementById("name")?.value.trim(),
+    student_id: document.getElementById("student_id")?.value.trim(),
+    program: document.getElementById("program")?.value.trim(),
+    q4: document.getElementById("q4")?.value.trim(),
+    q5: document.getElementById("q5")?.value.trim(),
+    q6: document.getElementById("q6")?.value.trim(),
+    q7: document.getElementById("q7")?.value.trim(),
+    q8: document.getElementById("q8")?.value.trim(),
+    q9: document.getElementById("q9")?.value.trim(),
+    q10: document.getElementById("q10")?.value.trim(),
+    q11: document.getElementById("q11")?.value.trim(),
+    q12: document.getElementById("q12")?.value.trim(),
+    q13: document.getElementById("q13")?.value.trim(),
+    q14: document.getElementById("q14")?.value.trim(),
+    comments: document.getElementById("q14")?.value.trim()  // fixed
   };
 
   try {
-    // Submit feedback
     const res = await fetch(FEEDBACK_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -95,17 +73,10 @@ form.addEventListener("submit", async (e) => {
     status.textContent = data.message || "✅ Submitted. Thank you!";
     form.reset();
 
-    // Run sentiment analysis via backend proxy
-    const sentiment = await getSentiment(payload.q14);
-    payload.sentiment = sentiment.label;
-    payload.sentimentClass = sentiment.class;
-
-    // Notify admin dashboard or any open tabs
+    // Notify admin/dashboard or other tabs
     if(window.opener && !window.opener.closed) {
       window.opener.postMessage({ type:"refresh-feedback", newFeedback: payload }, "*");
     }
-
-    // Notify local listeners (chat page, view_feedback, etc.)
     window.dispatchEvent(new CustomEvent("feedback-submitted", { detail: payload }));
 
   } catch(err) {
