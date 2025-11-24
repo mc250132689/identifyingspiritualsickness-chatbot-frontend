@@ -27,18 +27,18 @@
 </head>
 <body>
 <div class="container">
-  <h2>📊 Feedback Analysis Dashboard</h2>
+  <h2>📊 Feedback Analysis</h2>
 
   <div class="summary">
     <div>Total Submissions: <strong id="total-feedback">0</strong></div>
     <div>Average Usability: <strong id="avg-usability">0</strong></div>
     <div>Average Relevance: <strong id="avg-relevance">0</strong></div>
+    <div>Average Accuracy: <strong id="avg-accuracy">0</strong></div>
     <div>Average Helpfulness: <strong id="avg-helpfulness">0</strong></div>
     <div>Average Satisfaction: <strong id="avg-satisfaction">0</strong></div>
   </div>
 
   <button class="btn" onclick="exportCSV()">Export CSV</button>
-  <button class="btn" onclick="exportJSON()">Export JSON</button>
 
   <h3>Ratings Distribution (Q4-Q13)</h3>
   <canvas id="ratingsChart" height="120"></canvas>
@@ -111,6 +111,7 @@ async function loadFeedback(){
     // Summary
     document.getElementById("avg-usability").textContent = (ratingSums.q4/feedbackData.length).toFixed(2);
     document.getElementById("avg-relevance").textContent = (ratingSums.q7/feedbackData.length).toFixed(2);
+    document.getElementById("avg-accuracy").textContent = (ratingSums.q8/feedbackData.length).toFixed(2);
     document.getElementById("avg-helpfulness").textContent = (ratingSums.q10/feedbackData.length).toFixed(2);
     document.getElementById("avg-satisfaction").textContent = (ratingSums.q13/feedbackData.length).toFixed(2);
 
@@ -175,15 +176,6 @@ function exportCSV(){
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "feedback_report.csv";
-  link.click();
-}
-
-function exportJSON(){
-  if(!feedbackData.length) return alert("No feedback to export.");
-  const blob = new Blob([JSON.stringify(feedbackData,null,2)],{type:"application/json"});
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "feedback_report.json";
   link.click();
 }
 
