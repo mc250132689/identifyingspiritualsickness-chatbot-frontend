@@ -1,143 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Feedback - Identifying Spiritual Sickness Chatbot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .btn { padding: 10px 18px; font-size: 14px; border-radius: 8px; transition: background 0.2s; text-align: center; display: inline-block; text-decoration: none; }
-    .btn:hover { background-color: #3b5e53; }
-    input, select, textarea { font-size: 14px; }
-  </style>
-</head>
-<body>
-<div class="container">
-  <div class="card">
-    <header style="align-items:flex-start; display:flex; gap:10px;">
-      <div class="brand">✍️</div>
-      <div>
-        <h1>Feedback Form</h1>
-        <div style="font-size:13px;color:#4b6960">Please fill this short feedback to help improve the chatbot.</div>
-      </div>
-      <div style="margin-left:auto">
-        <a href="chat.html" class="btn small">← Back to Chat</a>
-      </div>
-    </header>
-
-    <form id="feedback-form">
-      <!-- Section 1: Participant Info -->
-      <h3>Section 1: Participant Information</h3>
-      <input id="name" placeholder="Name" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-      <input id="student_id" placeholder="Student ID" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-      <input id="program" placeholder="Program/Faculty" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd" />
-
-      <!-- Section 2: Usability -->
-      <h3>Section 2: Chatbot usability</h3>
-      <label>4. How easy was it to interact with the chatbot?</label>
-      <select id="q4" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very easy">Very easy</option>
-        <option value="Easy">Easy</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Difficult">Difficult</option>
-        <option value="Very difficult">Very difficult</option>
-      </select>
-
-      <label>5. Were the chatbot's instructions clear?</label>
-      <select id="q5" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very clear">Very clear</option>
-        <option value="Clear">Clear</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Unclear">Unclear</option>
-        <option value="Very unclear">Very unclear</option>
-      </select>
-
-      <label>6. Any difficulties or issues encountered while using the chatbot?</label>
-      <select id="q6" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="No difficulties">No difficulties</option>
-        <option value="Minor difficulties">Minor difficulties</option>
-        <option value="Major difficulties">Major difficulties</option>
-      </select>
-
-      <!-- Section 3: Relevance & Accuracy -->
-      <h3>Section 3: Relevance and accuracy</h3>
-      <label>7. How relevant were responses?</label>
-      <select id="q7" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very relevant">Very relevant</option>
-        <option value="Relevant">Relevant</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Irrelevant">Irrelevant</option>
-        <option value="Very irrelevant">Very irrelevant</option>
-      </select>
-
-      <label>8. How accurate do you feel the chatbot's guidance was?</label>
-      <select id="q8" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very accurate">Very accurate</option>
-        <option value="Accurate">Accurate</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Inaccurate">Inaccurate</option>
-        <option value="Very inaccurate">Very inaccurate</option>
-      </select>
-
-      <label>9. Any incorrect or misleading responses noticed?</label>
-      <select id="q9" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="No">No</option>
-        <option value="Yes">Yes</option>
-      </select>
-
-      <!-- Section 4: Helpfulness -->
-      <h3>Section 4: Helpfulness</h3>
-      <label>10. How helpful was the chatbot in providing answers based on Islamic practices?</label>
-      <select id="q10" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very helpful">Very helpful</option>
-        <option value="Helpful">Helpful</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Not helpful">Not helpful</option>
-        <option value="Very unhelpful">Very unhelpful</option>
-      </select>
-
-      <label>11. Would you consider using this chatbot regularly for spiritual guidance answers?</label>
-      <select id="q11" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-      </select>
-
-      <label>12. Suggestions to improve the chatbot?</label>
-      <textarea id="q12" placeholder="Suggestions..." style="width:100%;min-height:80px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
-
-      <!-- Section 5: Overall Experience -->
-      <h3>Section 5: Overall experience</h3>
-      <label>13. Overall, how satisfied are you with the chatbot?</label>
-      <select id="q13" style="width:100%;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd">
-        <option value="">Select</option>
-        <option value="Very satisfied">Very satisfied</option>
-        <option value="Satisfied">Satisfied</option>
-        <option value="Neutral">Neutral</option>
-        <option value="Dissatisfied">Dissatisfied</option>
-        <option value="Very dissatisfied">Very dissatisfied</option>
-      </select>
-
-      <label>14. Any additional comments or feedback?</label>
-      <textarea id="q14" placeholder="Any additional comments..." style="width:100%;min-height:100px;padding:8px;margin:6px 0;border-radius:8px;border:1px solid #ddd"></textarea>
-
-      <div style="margin-top:12px;text-align:right">
-        <button type="submit" class="btn">Submit Feedback</button>
-      </div>
-      <p id="feedback-status" class="small"></p>
-    </form>
-  </div>
-</div>
-
 <script>
 const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/submit-feedback";
+const EMOTION_API = "https://identifyingspiritualsickness-chatbot.onrender.com/predict-islamic-emotion";
 
 const form = document.getElementById("feedback-form");
 const status = document.getElementById("feedback-status");
@@ -146,6 +9,25 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   status.textContent = "Submitting...";
 
+  // Collect comments for emotion analysis
+  const comments = document.getElementById("q14")?.value.trim() || "";
+  let islamic_emotion = "Sakina"; // Default fallback
+
+  if(comments) {
+    try {
+      const emoRes = await fetch(EMOTION_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: comments })
+      });
+      const emoData = await emoRes.json();
+      if(emoData.emotion) islamic_emotion = emoData.emotion;
+    } catch(err) {
+      console.warn("Islamic emotion detection failed:", err);
+    }
+  }
+
+  // Build payload with Islamic emotion
   const payload = {
     name: document.getElementById("name")?.value.trim(),
     student_id: document.getElementById("student_id")?.value.trim(),
@@ -160,8 +42,9 @@ form.addEventListener("submit", async (e) => {
     q11: document.getElementById("q11")?.value.trim(),
     q12: document.getElementById("q12")?.value.trim(),
     q13: document.getElementById("q13")?.value.trim(),
-    q14: document.getElementById("q14")?.value.trim(),
-    comments: document.getElementById("q14")?.value.trim()
+    q14: comments,
+    comments: comments,
+    islamic_emotion: islamic_emotion
   };
 
   try {
@@ -186,5 +69,3 @@ form.addEventListener("submit", async (e) => {
   }
 });
 </script>
-</body>
-</html>
