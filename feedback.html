@@ -138,7 +138,6 @@
 
 <script>
 const FEEDBACK_API = "https://identifyingspiritualsickness-chatbot.onrender.com/submit-feedback";
-const EMOTION_API = "https://identifyingspiritualsickness-chatbot.onrender.com/predict-islamic-emotion";
 
 const form = document.getElementById("feedback-form");
 const status = document.getElementById("feedback-status");
@@ -147,25 +146,6 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   status.textContent = "Submitting...";
 
-  // Collect comments for emotion analysis
-  const comments = document.getElementById("q14")?.value.trim() || "";
-  let islamic_emotion = "Sakina"; // Default fallback
-
-  if(comments) {
-    try {
-      const emoRes = await fetch(EMOTION_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: comments })
-      });
-      const emoData = await emoRes.json();
-      if(emoData.emotion) islamic_emotion = emoData.emotion;
-    } catch(err) {
-      console.warn("Islamic emotion detection failed:", err);
-    }
-  }
-
-  // Build payload with Islamic emotion
   const payload = {
     name: document.getElementById("name")?.value.trim(),
     student_id: document.getElementById("student_id")?.value.trim(),
@@ -180,9 +160,8 @@ form.addEventListener("submit", async (e) => {
     q11: document.getElementById("q11")?.value.trim(),
     q12: document.getElementById("q12")?.value.trim(),
     q13: document.getElementById("q13")?.value.trim(),
-    q14: comments,
-    comments: comments,
-    islamic_emotion: islamic_emotion
+    q14: document.getElementById("q14")?.value.trim(),
+    comments: document.getElementById("q14")?.value.trim()
   };
 
   try {
@@ -207,6 +186,5 @@ form.addEventListener("submit", async (e) => {
   }
 });
 </script>
-
 </body>
 </html>
